@@ -70,15 +70,9 @@ uint processCommandLineArguments(QCommandLineParser& parser)
 
     swapIfNeeded(input_range_min, input_range_max);
 
-    QStringList sll = parser.positionalArguments();
-    if (parser.positionalArguments().count() > 0)
-      source_filename = parser.positionalArguments()[0];
-    if (source_filename.isEmpty() && !use_input_range)
-    {
-        qCritical() << "ERROR: input filename is missing. Please check command line format with shuf-t --help";
-        return -1;
-    }
-
+    QStringList pos_args = parser.positionalArguments();
+    if (pos_args.count() > 0)
+      source_filename = pos_args[0];
 
     if (use_input_range && !source_filename.isEmpty())
     {
@@ -104,6 +98,13 @@ int main(int argc, char *argv[])
         return result;
 
 
+    if (!use_input_range && source_filename.isEmpty())
+    {
+        print("reading data from stdin...\n");
+        source_filename = readStdinToTmpFile();
+    }
+
+
     QTime performance_timer;
     performance_timer.start();
 
@@ -114,6 +115,7 @@ int main(int argc, char *argv[])
     {
         result = openInputRangeSource(in, input_range_min, input_range_max);
     } else {
+        if( !source_filename.isEmpty() )
         result = openFileSource(in, source_filename);
     }
 

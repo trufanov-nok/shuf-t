@@ -16,7 +16,8 @@ QFile destination_file;
 QString source_string;
 QVector< Block > metadata;
 
-
+bool is_temporary_file = false;
+bool remove_trailing_empty_line = true;
 
 uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length)
 {
@@ -76,6 +77,11 @@ uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length)
     }
 
     print("\n");
+
+    if (remove_trailing_empty_line)
+        if (metadata.count() > 0 && metadata.last().length == 0)
+            metadata.removeLast();
+
 
     return 0;
 }
@@ -277,6 +283,49 @@ uint openFileSource(QForkedTextStream& ts, const QString filename)
     return result;
 }
 
+QString readStdinToTmpFile()
+{
+   QString fname;
+   QTemporaryFile f;
+   f.setAutoRemove(false);
+    if (f.open())
+    {
+        fname = f.fileName();
+        QTextStream f_stream(&f);
+        QFile f2;
+        if (f2.open(stdin, QIODevice::ReadOnly))
+        {
+            QTextStream f2_stream(&f2);
+            while(!f2_stream.atEnd())
+            {
+                f_stream << f2_stream.readLine() + '\n';
+            }
+            f2.close();
+
+        } else
+        {
+            f.close();
+            qCritical() << "ERROR: Can't open stdin";
+            return QString();
+        }
+
+        f.close();
+    } else {
+        qCritical() << "ERROR: Can't create a temp file " + fname;
+        return QString();
+    }
+
+   is_temporary_file = true;
+   return fname;
+}
+
+void closeFileSource()
+{
+    if (!is_temporary_file)
+            source_file.close();
+    else
+            source_file.remove();
+}
 
 uint openFileDestination(QTextStream& ts, const QString filename)
 {
@@ -303,6 +352,10 @@ uint openInputRangeSource(QForkedTextStream& ts, uint range_min, uint range_max)
     return readMetadata(ts, source_string.data_ptr()->size);
 }
 
+void closeInputRangeSource()
+{
+    source_string.clear();
+}
 
 uint openStdOutDestination(QTextStream& ts)
 {
@@ -312,3 +365,12 @@ uint openStdOutDestination(QTextStream& ts)
    ts.setDevice(&destination_file);
    return 0;
 }
+
+void closeFileDestination()
+{
+    destination_file.close();
+}
+
+
+
+

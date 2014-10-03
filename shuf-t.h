@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QVector>
+#include <QTemporaryFile>
 
 // shuffle settings
 extern qint64 _param_buffer_size;
@@ -32,22 +33,12 @@ void shuffleMetadata();
 uint openFileSource(QForkedTextStream& ts, const QString filename);
 uint openFileDestination(QTextStream& ts, const QString filename);
 uint openInputRangeSource(QForkedTextStream& ts, uint range_min = 0, uint range_max = 0);
+QString readStdinToTmpFile();
 uint openStdOutDestination(QTextStream& ts);
 
-inline void closeFileDestination()
-{
-    destination_file.close();
-}
-
-inline void closeFileSource()
-{
-    source_file.close();
-}
-
-inline void closeInputRangeSource()
-{
-    //source_string.clear();
-}
+void closeFileDestination();
+void closeFileSource();
+void closeInputRangeSource();
 
 
 #endif // SHUFFT_H
