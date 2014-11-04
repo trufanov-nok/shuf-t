@@ -7,8 +7,8 @@ This application shuffles the input file lines skipping (optionaly) the header. 
 3. Iteratively shuf-t takes the offsets of first N shuffled lines and sort their offsets ascending. Lines are read from input file (only seeking forward is used as offsets are sorted) and written to memory allocated buffer in shuffled order. Then buffer is written to output file. Buffer size can be adjusted by user based on available amount of free RAM. Value N is chosen based on lines length and buffer size at the beginning of each iteration.
 
 Options:
-* v, --version               Displays version information.
-* h, --help                  Displays this help.
+  -v, --version               Displays version information.
+  -h, --help                  Displays this help.
   -i, --input_range <LO-HI>   Act as if input came from a file containing the
                               range of unsigned decimal integers LO...HI, one
                               per line.
