@@ -26,3 +26,9 @@ HEADERS += \
     utils.h \
     qforkedtextstream.h \
     qforkedtextstream_p.h
+
+unix {
+QMAKE_LFLAGS_RPATH=
+QMAKE_LFLAGS =
+QMAKE_RPATHDIR =
+}
