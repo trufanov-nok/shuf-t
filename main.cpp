@@ -1,9 +1,10 @@
-#include "shuf-t.h"
-#include "utils.h"
+#include <ctime>
 #include <QDebug>
 #include <QCoreApplication>
 #include <QTime>
-#include "qforkedtextstream.h"
+
+#include "shuf-t.h"
+#include "utils.h"
 
 QString source_filename;
 QString destination_filename;
