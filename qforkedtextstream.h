@@ -64,7 +64,7 @@ class QTextCodec;
 class QTextDecoder;
 
 class QForkedTextStreamPrivate;
-class Q_CORE_EXPORT QForkedTextStream                                // text stream class
+class QForkedTextStream                                // text stream class
 {
     Q_DECLARE_PRIVATE(QForkedTextStream)
 
@@ -216,7 +216,7 @@ typedef void (QForkedTextStream::*QFTSMFI)(int); // manipulator w/int argument
 typedef void (QForkedTextStream::*QFTSMFC)(QChar); // manipulator w/QChar argument
 
 
-class Q_CORE_EXPORT QForkedTextStreamManipulator
+class QForkedTextStreamManipulator
 {
 public:
     QForkedTextStreamManipulator(QFTSMFI m, int a) { mf = m; mc = 0; arg = a; }
@@ -239,37 +239,37 @@ inline QForkedTextStream &operator<<(QForkedTextStream &s, QForkedTextStreamFunc
 inline QForkedTextStream &operator<<(QForkedTextStream &s, QForkedTextStreamManipulator m)
 { m.exec(s); return s; }
 
-Q_CORE_EXPORT QForkedTextStream &bin(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &oct(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &dec(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &hex(QForkedTextStream &s);
+QForkedTextStream &bin(QForkedTextStream &s);
+QForkedTextStream &oct(QForkedTextStream &s);
+QForkedTextStream &dec(QForkedTextStream &s);
+QForkedTextStream &hex(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &showbase(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &forcesign(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &forcepoint(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &noshowbase(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &noforcesign(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &noforcepoint(QForkedTextStream &s);
+QForkedTextStream &showbase(QForkedTextStream &s);
+QForkedTextStream &forcesign(QForkedTextStream &s);
+QForkedTextStream &forcepoint(QForkedTextStream &s);
+QForkedTextStream &noshowbase(QForkedTextStream &s);
+QForkedTextStream &noforcesign(QForkedTextStream &s);
+QForkedTextStream &noforcepoint(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &uppercasebase(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &uppercasedigits(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &lowercasebase(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &lowercasedigits(QForkedTextStream &s);
+QForkedTextStream &uppercasebase(QForkedTextStream &s);
+QForkedTextStream &uppercasedigits(QForkedTextStream &s);
+QForkedTextStream &lowercasebase(QForkedTextStream &s);
+QForkedTextStream &lowercasedigits(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &fixed(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &scientific(QForkedTextStream &s);
+QForkedTextStream &fixed(QForkedTextStream &s);
+QForkedTextStream &scientific(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &left(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &right(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &center(QForkedTextStream &s);
+QForkedTextStream &left(QForkedTextStream &s);
+QForkedTextStream &right(QForkedTextStream &s);
+QForkedTextStream &center(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &endl(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &flush(QForkedTextStream &s);
-Q_CORE_EXPORT QForkedTextStream &reset(QForkedTextStream &s);
+QForkedTextStream &endl(QForkedTextStream &s);
+QForkedTextStream &flush(QForkedTextStream &s);
+QForkedTextStream &reset(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &bom(QForkedTextStream &s);
+QForkedTextStream &bom(QForkedTextStream &s);
 
-Q_CORE_EXPORT QForkedTextStream &ws(QForkedTextStream &s);
+QForkedTextStream &ws(QForkedTextStream &s);
 
 inline QForkedTextStreamManipulator qSetForkedFieldWidth(int width)
 {
