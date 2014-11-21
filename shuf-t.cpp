@@ -28,6 +28,8 @@ uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length)
     else
         progress_step = (double) source_length   / 10;  //progress by bytes read
 
+    if (progress_step <= 0) progress_step = 1; //file length 0 or 1
+
     metadata.clear();
 
     if (_param_end_line > 0)
@@ -96,6 +98,7 @@ void shuffleMetadata()
     double progress_step = (double) n/10;
     double progress = 0;
 
+    if (n > 0)
     for (uint i = n-1; i > 0; i--)
     {
         uint j = rand() % (i+1);
