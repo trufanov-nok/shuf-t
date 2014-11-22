@@ -150,7 +150,7 @@ int writeData(QForkedTextStream& in_stream, QTextStream& out_stream)
         blocks_left = total_blocks;
 
     double blocks_processed = 0;
-    double progress_step = (double) total_blocks/10;
+    double progress_step = (double) blocks_left/10.;
     double progress = 0;
     result = 0;
 
@@ -169,7 +169,7 @@ int writeData(QForkedTextStream& in_stream, QTextStream& out_stream)
             Block& next_block = metadata[blocks_marked];
             uint block_len = next_block.length + 1; // +1 for "\n"
 
-            if (block_len < buffer_size_left)
+            if (block_len <= buffer_size_left)
             {   // block still can fit the buffer
                 blocks_to_read.append(Block2Buf(next_block.offset, _param_buffer_size-buffer_size_left));
                 buffer_size_left -= block_len;
@@ -201,7 +201,7 @@ int writeData(QForkedTextStream& in_stream, QTextStream& out_stream)
         // read blocks from input to buffer
         buffer_stream.seek(0);
         qint64 pos_buffer = 0;
-        qint64 pos_input  = 0;
+        qint64 pos_input  = in_stream.getFastPos();
         //QHelperTextStream in_helper(in_stream);
 
         foreach (Block2Buf block, blocks_to_read)
@@ -251,7 +251,11 @@ int writeData(QForkedTextStream& in_stream, QTextStream& out_stream)
         }
 
         // progress by blocks
-        blocks_processed = total_blocks - blocks_left;
+        if (_param_output_limit > 0)
+            blocks_processed = std::min(_param_output_limit,total_blocks) - blocks_left;
+        else
+            blocks_processed = total_blocks - blocks_left;
+
         while (blocks_processed - progress > 1e-5)
         {
             progress += progress_step;
