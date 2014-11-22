@@ -44,7 +44,7 @@ uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length)
     qint64 pos_start = 0;
     uint lines_processed = 0;
 
-    uint skip_first_lines = std::max(_param_header,_param_start_line);
+    uint skip_first_lines = std::max(_param_header+1,_param_start_line);
 
     while (!source_stream.atEnd())
     {
