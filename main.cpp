@@ -52,12 +52,16 @@ uint processCommandLineArguments(QCommandLineParser& parser)
     if(parser.isSet("o"))
         destination_filename  = parser.value("o");
 
+    uint seed  = 0;
     if(parser.isSet("s"))
     {
-        uint seed  = parser.value("s").toUInt();
-        srand(seed);
+        seed  = parser.value("s").toUInt();
     } else
-        srand(time(NULL));
+        seed = time(NULL);
+
+    srand(seed);
+    print("random seed: ");
+    print(QString::number(seed)+"\n");
 
 
 
