@@ -9,6 +9,7 @@
 #include <QVector>
 #include <QTemporaryFile>
 
+
 // shuffle settings
 extern qint64 _param_buffer_size;
 extern uint _param_start_line;

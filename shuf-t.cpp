@@ -44,14 +44,15 @@ uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length)
     qint64 pos_start = 0;
     uint lines_processed = 0;
 
-
+    uint skip_first_lines = std::max(_param_header,_param_start_line);
 
     while (!source_stream.atEnd())
     {
         source_stream.readLine();
 
+
         qint64 pos_end = source_stream.getFastPos();
-        if (_param_start_line <= ++lines_processed)
+        if (skip_first_lines <= ++lines_processed)
         {
             uint strlen = source_stream.getBytesRead();
             metadata.append( Block(pos_start, strlen) );
