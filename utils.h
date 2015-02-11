@@ -10,9 +10,10 @@
 static const int QTEXTSTREAM_BUFFERSIZE = 16384;
 
 extern bool _param_verbose;
+extern bool _is_terminal;
 inline void print(const char* s)
 {
-    if (_param_verbose)
+    if (_param_verbose && _is_terminal)
     {
         fprintf(stdout, "%s",  s);
         fflush(stdout);

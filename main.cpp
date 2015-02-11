@@ -6,6 +6,8 @@
 #include "shuf-t.h"
 #include "utils.h"
 
+#include <unistd.h> // for isatty()
+
 QString source_filename;
 QString destination_filename;
 bool use_input_range;
@@ -34,6 +36,8 @@ uint processCommandLineArguments(QCommandLineParser& parser)
 
     if(parser.isSet("q"))
         _param_verbose = !parser.value("q").toInt();
+
+    _is_terminal =  isatty(fileno(stdout));
 
     if(parser.isSet("t"))
         _param_header  = parser.value("t").toUInt();
@@ -133,7 +137,7 @@ int main(int argc, char *argv[])
     if (!destination_filename.isEmpty())
     {
         result = openFileDestination(out, destination_filename);
-    } else {
+    } else {        
         result = openStdOutDestination(out);
     }
 

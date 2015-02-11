@@ -10,6 +10,7 @@ uint _param_end_line = 0;
 uint _param_header = 0;
 uint _param_output_limit = 0;
 bool _param_verbose = true;
+bool _is_terminal = false;
 
 QFile source_file;
 QFile destination_file;

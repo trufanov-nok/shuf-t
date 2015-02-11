@@ -17,6 +17,7 @@ extern uint _param_end_line;
 extern uint _param_header;
 extern uint _param_output_limit;
 extern bool _param_verbose;
+extern bool _is_terminal;
 
 // internal data
 extern QFile source_file;
