@@ -14,7 +14,6 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-
 SOURCES += utils.cpp \
     main.cpp \
     shuf-t.cpp \
@@ -27,8 +26,4 @@ HEADERS += \
     qforkedtextstream.h \
     qforkedtextstream_p.h
 
-unix {
-QMAKE_LFLAGS_RPATH=
-QMAKE_LFLAGS =
-QMAKE_RPATHDIR =
-}
+
