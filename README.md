@@ -3,7 +3,7 @@ shuf-t 1.0
 <a href="https://scan.coverity.com/projects/5165">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/5165/badge.svg"/>
-</a>
+</a>  
 This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:  
 1. The file is scanned and offsets of all lines are stored in RAM.  
 2. Offsets are shuffled (Fisher–Yates algorithm).  
