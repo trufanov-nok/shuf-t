@@ -13,10 +13,10 @@ extern bool _param_verbose;
 extern bool _is_terminal;
 inline void print(const char* s)
 {
-    if (_param_verbose && _is_terminal)
+    if (_param_verbose)
     {
-        fprintf(stdout, "%s",  s);
-        fflush(stdout);
+        fprintf(stderr, "%s",  s);
+        fflush(stderr);
     }
 
 }
