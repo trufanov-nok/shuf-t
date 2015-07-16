@@ -1,7 +1,7 @@
 [DEBREATE-0.7.10]
 <<CTRL>>
 Package: shuf-t
-Version: 1.0
+Version: 1.1
 Section: utils
 Maintainer: Alexander Trufanov <trufanovan@gmail.com>
 Homepage: https://github.com/trufanov-nok/shuf-t
@@ -17,7 +17,7 @@ Description: Shuffles lines of the files bigger than available RAM
 <</CTRL>>
 <<FILES>>
 1
-/home/truf/projects/build-shuf-t-Desktop_Qt_5_3_0_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
+/home/truf/dev/build-shuf-t-Desktop_Qt_5_4_1_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
 <</FILES>>
 <<SCRIPTS>>
 <<PREINST>>
@@ -35,6 +35,13 @@ Description: Shuffles lines of the files bigger than available RAM
 <</SCRIPTS>>
 <<CHANGELOG>>
 <<DEST>>DEFAULT<</DEST>>
+ (1.1) ; urgency=low
+
+  * text stream bug is fixed
+  * stderr is used instead of stdout to print prompt messages
+
+ --  <>  Thu, 16 Jul 2015 16:29:25 +0400
+
 shuf-t (1.0) ; urgency=low
 
   * Initial release
