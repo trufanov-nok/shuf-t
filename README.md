@@ -1,9 +1,5 @@
-shuf-t 1.0
+shuf-t 1.1
 ======
-<a href="https://scan.coverity.com/projects/5165">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/5165/badge.svg"/>
-</a>  
 This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:  
 1. The file is scanned and offsets of all lines are stored in RAM.  
 2. Offsets are shuffled (Fisher–Yates algorithm).  
@@ -30,3 +26,9 @@ Options:
   -s, --seed <VALUE>          Initialize rand function with given seed.  
                               Overwise system time is used. 
 ```
+
+
+Changelog:
+1.1 - critical bug fixed in IO stream
+      use stderr instead of stdout to print notifications
+1.0 - initial release.

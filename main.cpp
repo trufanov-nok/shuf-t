@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("Shuf-t");
-    QCoreApplication::setApplicationVersion("1.0");
+    QCoreApplication::setApplicationVersion("1.1");
 
     QCommandLineParser parser;
     initCommandOptionsParser(parser);
