@@ -531,6 +531,7 @@ void QForkedTextStreamPrivate::resetReadBuffer()
 {
     readBuffer.clear();
     readBufferOffset = 0;
+    readConverterSavedStateOffset = 0;
     readBufferStartDevicePos = (device ? device->pos() : 0);
 }
 
