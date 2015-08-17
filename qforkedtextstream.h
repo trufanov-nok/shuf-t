@@ -58,7 +58,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#define QT_NO_TEXTCODEC_FORKED
+//#define QT_NO_TEXTCODEC_FORKED
 
 class QTextCodec;
 class QTextDecoder;

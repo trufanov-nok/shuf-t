@@ -3,12 +3,9 @@
 
 
 #include "metadata.h"
-#include "./qforkedtextstream.h"
-#include <QTextStream>
-#include <QFile>
 #include <QVector>
 #include <QTemporaryFile>
-
+#include "io_buf.h"
 
 // shuffle settings
 extern qint64 _param_buffer_size;
@@ -20,23 +17,23 @@ extern bool _param_verbose;
 extern bool _is_terminal;
 
 // internal data
-extern QFile source_file;
-extern QFile destination_file;
+extern io_buf source_file;
+extern io_buf destination_file;
 extern QString source_string;
 extern QVector< Block > metadata;
 
 
 
 
-uint readMetadata(QForkedTextStream& source_stream, const qint64 source_length = 0);
-int  writeData(QForkedTextStream& in_stream, QTextStream& out_stream);
+uint readMetadata(io_buf& src_file, const qint64 source_length = 0);
+int  writeData(io_buf& in_file, io_buf &out_file);
 void shuffleMetadata();
 
-uint openFileSource(QForkedTextStream& ts, const QString filename);
-uint openFileDestination(QTextStream& ts, const QString filename);
-uint openInputRangeSource(QForkedTextStream& ts, uint range_min = 0, uint range_max = 0);
+int openFileSource(io_buf& ts, const QString filename);
+int openFileDestination(io_buf& ts, const QString filename);
+uint openInputRangeSource(io_buf& ts, uint range_min = 0, uint range_max = 0);
 QString readStdinToTmpFile();
-uint openStdOutDestination(QTextStream& ts);
+int openStdOutDestination(io_buf& ts);
 
 void closeFileDestination();
 void closeFileSource();

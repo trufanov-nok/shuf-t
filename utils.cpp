@@ -32,32 +32,3 @@ void initCommandOptionsParser(QCommandLineParser &parser)
     parser.addOption(QCommandLineOption(QStringList() << "s" << "seed", "Initialize rand function with given seed. Overwise system time is used.", "VALUE"));
 
 }
-
-//int getLineDelimiterLength(QForkedTextStream& ts)
-//{
-//    ts.seek(0);
-
-//    //detect line delimeter size
-//    uint line_delimeter_size = 0;
-//    while(!ts.atEnd())
-//    {
-//        QString buf = ts.read(QTEXTSTREAM_BUFFERSIZE);
-//        bool done = false;
-//        foreach(QChar c, buf)
-//        {
-//            if(c == '\n' || c == '\r')
-//                line_delimeter_size++;
-//            else
-//                if (line_delimeter_size > 0)
-//                {
-//                    done = true;
-//                    break;
-//                }
-//        }
-//        if (done)
-//            break;
-//    }
-
-//    ts.seek(0);
-//    return line_delimeter_size;
-//}

@@ -46,6 +46,5 @@ inline void swapIfNeeded(uint& i1, uint& i2)
 
 void printTime(const int msc);
 void initCommandOptionsParser(QCommandLineParser &parser);
-int getLineDelimiterLength(QForkedTextStream &ts);
 
 #endif // UTILS_H

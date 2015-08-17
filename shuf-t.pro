@@ -17,13 +17,15 @@ TEMPLATE = app
 SOURCES += utils.cpp \
     main.cpp \
     shuf-t.cpp \
-    qforkedtextstream.cpp
+    io_buf.cc \
+    vw_exception.cc
 
 HEADERS += \
     metadata.h \
     shuf-t.h \
     utils.h \
-    qforkedtextstream.h \
-    qforkedtextstream_p.h
+    io_buf.h \
+    v_array.h \
+    vw_exception.h
 
 

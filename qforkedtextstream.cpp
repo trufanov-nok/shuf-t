@@ -620,7 +620,7 @@ QString QForkedTextStreamPrivate::read(int maxlen)
         ret = string->mid(stringOffset, lastTokenSize);
     } else {
         while (readBuffer.size() - readBufferOffset < maxlen && fillReadBuffer()) ;
-        lastTokenSize = qMin(maxlen, readBuffer.size() - readBufferOffset);
+        lastTokenSize = qMin((qint64)maxlen, readBuffer.size() - readBufferOffset);
         ret = readBuffer.mid(readBufferOffset, lastTokenSize);
     }
     consumeLastToken();
@@ -869,7 +869,7 @@ inline void QForkedTextStreamPrivate::ungetChar(QChar ch)
         return;
     }
 
-    readBuffer[--readBufferOffset] = ch;
+    readBuffer[(int)--readBufferOffset] = ch;
 }
 
 /*!

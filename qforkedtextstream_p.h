@@ -127,8 +127,8 @@ public:
 
     QString writeBuffer;
     QString readBuffer;
-    int readBufferOffset;
-    int readConverterSavedStateOffset; //the offset between readBufferStartDevicePos and that start of the buffer
+    qint64 readBufferOffset;
+    qint64 readConverterSavedStateOffset; //the offset between readBufferStartDevicePos and that start of the buffer
     qint64 readBufferStartDevicePos;
 
     Params params;

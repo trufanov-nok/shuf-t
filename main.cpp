@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QTime>
+#include <QTextCodec>
 
 #include "shuf-t.h"
 #include "utils.h"
@@ -94,6 +95,7 @@ return 0;
 
 int main(int argc, char *argv[])
 {
+
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("Shuf-t");
     QCoreApplication::setApplicationVersion("1.1");
@@ -107,6 +109,8 @@ int main(int argc, char *argv[])
         return result;
 
 
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP1251"));
+
     if (!use_input_range && source_filename.isEmpty())
     {
         print("reading data from stdin...\n");
@@ -117,7 +121,7 @@ int main(int argc, char *argv[])
     QTime performance_timer;
     performance_timer.start();
 
-    QForkedTextStream in;
+    io_buf in;
 
     print("searching line offsets:  ");
     if (use_input_range)
@@ -132,7 +136,7 @@ int main(int argc, char *argv[])
     printTime(performance_timer.elapsed());
     performance_timer.restart();
 
-    QTextStream out;
+    io_buf out;
 
     if (!destination_filename.isEmpty())
     {
@@ -140,6 +144,11 @@ int main(int argc, char *argv[])
     } else {        
         result = openStdOutDestination(out);
     }
+
+//    in.setCodec("CP1251");
+//    in.autoDetectUnicode(false);
+//    out.setCodec("CP1251");
+//    out.autoDetectUnicode(false);
 
     print("shuffling line offsets:  ");
 
