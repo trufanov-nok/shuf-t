@@ -5,7 +5,7 @@
 struct Block
 {
     qint64 offset;
-    uint length;
+    qint64 length;
     Block(qint64 pOffset = 0, uint pLength = 0) : offset(pOffset), length(pLength) {}
 };
 

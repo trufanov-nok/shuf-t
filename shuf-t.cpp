@@ -159,9 +159,9 @@ int writeData(io_buf& in_file, io_buf& out_file)
     while (result == 0 && blocks_left > 0)
     {
         QVector<Block2Buf> blocks_to_read;
-        uint buffer_size_left = _param_buffer_size;
+        qint64 buffer_size_left = _param_buffer_size;
 
-        uint blocks_marked = 0;
+        qint64 blocks_marked = 0;
 
 
         // mark as many blocks as could fit our buffer
@@ -169,7 +169,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
         while (blocks_marked < blocks_left)
         {
             Block& next_block = metadata[blocks_marked];
-            uint block_len = next_block.length;
+            qint64 block_len = next_block.length;
 
             if (block_len <= buffer_size_left)
             {   // block still can fit the buffer
