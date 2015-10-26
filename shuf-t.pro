@@ -4,28 +4,28 @@
 #
 #-------------------------------------------------
 
-QT       += core
-
+QT       -= core
 QT       -= gui
 
 TARGET = shuf-t
-CONFIG   += console
+
+CONFIG   -= console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+LIBS = -lboost_program_options
+
 SOURCES += utils.cpp \
     main.cpp \
     shuf-t.cpp \
-    io_buf.cc \
-    vw_exception.cc
+    io_buf.cc
 
 HEADERS += \
     metadata.h \
     shuf-t.h \
     utils.h \
     io_buf.h \
-    v_array.h \
-    vw_exception.h
+    v_array.h
 
 

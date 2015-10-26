@@ -3,36 +3,36 @@
 
 
 #include "metadata.h"
-#include <QVector>
-#include <QTemporaryFile>
+#include <string>
+#include <vector>
 #include "io_buf.h"
 
 // shuffle settings
-extern qint64 _param_buffer_size;
-extern uint _param_start_line;
-extern uint _param_end_line;
-extern uint _param_header;
-extern uint _param_output_limit;
+extern size_t _param_buffer_size;
+extern size_t _param_start_line;
+extern size_t _param_end_line;
+extern size_t _param_header;
+extern size_t _param_output_limit;
 extern bool _param_verbose;
 extern bool _is_terminal;
 
 // internal data
 extern io_buf source_file;
 extern io_buf destination_file;
-extern QString source_string;
-extern QVector< Block > metadata;
+extern string source_string;
+extern vector< Block > metadata;
 
 
 
 
-uint readMetadata(io_buf& src_file, const qint64 source_length = 0);
+size_t readMetadata(io_buf& src_file, const long long source_length = 0);
 int  writeData(io_buf& in_file, io_buf &out_file);
 void shuffleMetadata();
 
-int openFileSource(io_buf& ts, const QString filename);
-int openFileDestination(io_buf& ts, const QString filename);
-uint openInputRangeSource(io_buf& ts, uint range_min = 0, uint range_max = 0);
-QString readStdinToTmpFile();
+int openFileSource(io_buf& ts, const string filename);
+int openFileDestination(io_buf& ts, const string filename);
+size_t openInputRangeSource(io_buf& ts, size_t range_min = 0, size_t range_max = 0);
+FILE *readStdinToTmpFile();
 int openStdOutDestination(io_buf& ts);
 
 void closeFileDestination();

@@ -1,27 +1,26 @@
 #include "shuf-t.h"
 #include "utils.h"
-#include <QDebug>
-#include <QTextCodec>
+#include <cstdio>
 
 //global variables initialization
 
-qint64 _param_buffer_size = 1024*1024*1024; //1 Gib
-uint _param_start_line = 0;
-uint _param_end_line = 0;
-uint _param_header = 0;
-uint _param_output_limit = 0;
+size_t _param_buffer_size = 1024*1024*1024; //1 Gib
+size_t _param_start_line = 0;
+size_t _param_end_line = 0;
+size_t _param_header = 0;
+size_t _param_output_limit = 0;
 bool _param_verbose = true;
 bool _is_terminal = false;
 
 io_buf source_file;
 io_buf destination_file;
-QString source_string;
-QVector< Block > metadata;
+string source_string;
+vector< Block > metadata;
 
 bool is_temporary_file = false;
 bool remove_trailing_empty_line = true;
 
-uint readMetadata(io_buf& src_file, const qint64 source_length)
+size_t readMetadata(io_buf& src_file, const size_t source_length)
 {
     double progress_step = 0;
 
@@ -36,24 +35,24 @@ uint readMetadata(io_buf& src_file, const qint64 source_length)
 
     if (_param_end_line > 0)
     {
-        metadata.reserve(_param_end_line - std::max(_param_start_line, (uint) 1) + 1);
+        metadata.reserve(_param_end_line - std::max(_param_start_line, (size_t) 1) + 1);
     }
 
 
     double progress = 0;
 
     // scan file for line offsets
-    qint64 pos_start = 0;
-    uint lines_processed = 0;
+    size_t pos_start = 0;
+    size_t lines_processed = 0;
 
-    uint skip_first_lines = std::max(_param_header+1,_param_start_line);
+    size_t skip_first_lines = std::max(_param_header+1,_param_start_line);
 
     char *line = NULL;
     size_t len;
-    while (len = readto(src_file, line, '\n'))
+    while ((len = readto(src_file, line, '\n')))
     {
         if (skip_first_lines <= ++lines_processed)
-            metadata.append( Block(pos_start, len) );
+            metadata.push_back( Block(pos_start, len) );
 
         pos_start += len;
 
@@ -78,8 +77,8 @@ uint readMetadata(io_buf& src_file, const qint64 source_length)
     print("\n");
 
     if (remove_trailing_empty_line)
-        if (metadata.count() > 0 && metadata.last().length == 0)
-            metadata.removeLast();
+        if (metadata.size() > 0 && (metadata.end()-1)->length == 0)
+            metadata.pop_back();
 
 
     return 0;
@@ -91,14 +90,14 @@ uint readMetadata(io_buf& src_file, const qint64 source_length)
 void shuffleMetadata()
 {
     double blocks_processed = 1; // n-1 loops
-    uint n = metadata.count();
+    size_t n = metadata.size();
     double progress_step = (double) n/10;
     double progress = 0;
 
     if (n > 0)
-        for (uint i = n-1; i > 0; i--)
+        for (size_t i = n-1; i > 0; i--)
         {
-            uint j = rand() % (i+1);
+            size_t j = rand() % (i+1);
             if (j != i)
             {
                 Block b     = metadata[i];
@@ -117,7 +116,6 @@ void shuffleMetadata()
     print("\n");
 }
 
-//const char* eoln= "\n";
 
 int writeData(io_buf& in_file, io_buf& out_file)
 {
@@ -126,7 +124,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
     if(int_buffer == NULL)
     {
-        qCritical() << "can't allocate enough memory";
+        fprintf(stderr, "can't allocate enough memory");
         return result;
     }
 
@@ -134,20 +132,19 @@ int writeData(io_buf& in_file, io_buf& out_file)
     char *line = NULL;
 
     // copy header from the beginning of input
-    qint64 pos_input = 0;
+    size_t pos_input = 0;
     while (_param_header--)
     {
         size_t len = readto(in_file, line, '\n');
         pos_input += len;
         bin_write_fixed(out_file, line, len);
-//        bin_write_fixed(out_file, eoln, 1);
     }
 
     // copy data
-    uint total_blocks = metadata.count();
-    uint blocks_left;
+    size_t total_blocks = metadata.size();
+    size_t blocks_left;
     if (_param_output_limit > 0)
-        blocks_left = std::min(_param_output_limit, total_blocks);
+        blocks_left = min(_param_output_limit, total_blocks);
     else
         blocks_left = total_blocks;
 
@@ -158,10 +155,10 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
     while (result == 0 && blocks_left > 0)
     {
-        QVector<Block2Buf> blocks_to_read;
-        qint64 buffer_size_left = _param_buffer_size;
+        vector<Block2Buf> blocks_to_read;
+        size_t buffer_size_left = _param_buffer_size;
 
-        qint64 blocks_marked = 0;
+        size_t blocks_marked = 0;
 
 
         // mark as many blocks as could fit our buffer
@@ -169,11 +166,11 @@ int writeData(io_buf& in_file, io_buf& out_file)
         while (blocks_marked < blocks_left)
         {
             Block& next_block = metadata[blocks_marked];
-            qint64 block_len = next_block.length;
+            size_t block_len = next_block.length;
 
             if (block_len <= buffer_size_left)
             {   // block still can fit the buffer
-                blocks_to_read.append(Block2Buf(next_block.offset, _param_buffer_size-buffer_size_left));
+                blocks_to_read.push_back(Block2Buf(next_block.offset, _param_buffer_size-buffer_size_left));
                 buffer_size_left -= block_len;
 
                 blocks_marked++;
@@ -193,7 +190,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
             }
             break;
         } else {
-            metadata.remove(0, blocks_marked);
+            metadata.erase(metadata.begin(), metadata.begin()+blocks_marked);
             blocks_left -= blocks_marked;
         }
 
@@ -202,8 +199,9 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
         // read blocks from input to buffer
 
-        foreach (Block2Buf block, blocks_to_read)
+        for(size_t i = 0; i < blocks_to_read.size(); ++i)
         {
+            Block2Buf& block = blocks_to_read[i];
             if (pos_input != block.offset_read)
             {
                 if(in_file.seek(block.offset_read) == -1) //always forward
@@ -220,7 +218,6 @@ int writeData(io_buf& in_file, io_buf& out_file)
             pos_input += len;
 
             memcpy( int_buffer+block.offset_write, line, len);
-//            int_buffer[block.offset_write+len] = '\n';
         }
 
 
@@ -231,15 +228,15 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
         while (pos_buffer < buffer_size_used)
         {
-            int read_len =  std::min(QTEXTSTREAM_BUFFERSIZE, (int) (buffer_size_used - pos_buffer));
+            int write_len =  min(QTEXTSTREAM_BUFFERSIZE, (int) (buffer_size_used - pos_buffer));
             char*  buf = int_buffer+pos_buffer;
-            bin_write_fixed(out_file, buf, read_len);
-            pos_buffer += read_len;
+            bin_write_fixed(out_file, buf, write_len);
+            pos_buffer += write_len;
         }
 
         // progress by blocks
         if (_param_output_limit > 0)
-            blocks_processed = std::min(_param_output_limit,total_blocks) - blocks_left;
+            blocks_processed = min(_param_output_limit,total_blocks) - blocks_left;
         else
             blocks_processed = total_blocks - blocks_left;
 
@@ -263,54 +260,36 @@ int writeData(io_buf& in_file, io_buf& out_file)
 }
 
 
-int openFileSource(io_buf &ts, const QString filename)
+int openFileSource(io_buf &ts, const string filename)
 {
     ts.close_file();
     int result = -1;
-    if ( (result = ts.open_file(filename.toStdString().c_str(), false)) != -1)
+    if ( (result = ts.open_file(filename.data())) != -1)
     {
         ts.reset();
-
         result = readMetadata(ts, ts.size());
     }
 
     return result;
 }
 
-QString readStdinToTmpFile()
+std::FILE* readStdinToTmpFile()
 {
-    QString fname;
-    QTemporaryFile f;
-    f.setAutoRemove(false);
-    if (f.open())
+    std::FILE* f = std::tmpfile();
+    if (f != NULL)
     {
-        fname = f.fileName();
-        QTextStream f_stream(&f);
-        QFile f2;
-        if (f2.open(stdin, QIODevice::ReadOnly))
-        {
-            QTextStream f2_stream(&f2);
-            while(!f2_stream.atEnd())
-            {
-                f_stream << f2_stream.readLine() + '\n';
-            }
-            f2.close();
+        for (std::string line; std::getline(std::cin, line);)
+         {
+            std::fputs(line.data(), f);
+         }
+        std::rewind(f);
 
-        } else
-        {
-            f.close();
-            qCritical() << "ERROR: Can't open stdin";
-            return QString();
-        }
-
-        f.close();
     } else {
-        qCritical() << "ERROR: Can't create a temp file " + fname;
-        return QString();
+        fprintf(stderr, "ERROR: Can't create a temporary file.");
     }
 
     is_temporary_file = true;
-    return fname;
+    return f;
 }
 
 void closeFileSource()
@@ -323,11 +302,11 @@ void closeFileSource()
     }
 }
 
-int openFileDestination(io_buf& ts, const QString filename)
+int openFileDestination(io_buf& ts, const string filename)
 {
     ts.close_file();
     int result = -1;
-    if ( (result = ts.open_file(filename.toStdString().c_str(), false, io_buf::WRITE)) != -1)
+    if ( (result = ts.open_file(filename.data(), io_buf::WRITE)) != -1)
     {
         ts.reset();
     }
@@ -335,16 +314,19 @@ int openFileDestination(io_buf& ts, const QString filename)
     return result;
 }
 
-uint openInputRangeSource(io_buf& ts, uint range_min, uint range_max)
+size_t openInputRangeSource(io_buf& ts, size_t range_min, size_t range_max)
 {
-    //TODO
-//    source_string.clear();
-//    QStringList sl;
-//    for (uint i = range_min; i <= range_max; i++)
-//        sl.append(QString::number(i));
-//    source_string = sl.join("\n");
-//    ts.setString(&source_string, QIODevice::ReadOnly);
-//    return readMetadata(ts, source_string.data_ptr()->size);
+
+    source_string.clear();
+    for (size_t i = range_min; i <= range_max; i++)
+    {
+        if (!source_string.empty())
+            source_string.push_back('\n');
+        source_string.append(to_string(i));
+    }
+//TODO
+    //ts.setString(&source_string, QIODevice::ReadOnly);
+//    return readMetadata(ts, source_string.size());
 }
 
 void closeInputRangeSource()
@@ -354,7 +336,7 @@ void closeInputRangeSource()
 
 int openStdOutDestination(io_buf& ts)
 {
-    return ts.open_file(NULL, true);
+    return ts.open_file(NULL, io_buf::WRITE);
 }
 
 void closeFileDestination()

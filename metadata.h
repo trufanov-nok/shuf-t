@@ -1,19 +1,18 @@
 #ifndef METADATA_H
 #define METADATA_H
-#include <QtGlobal>
-
+#include <cstdlib>
 struct Block
 {
-    qint64 offset;
-    qint64 length;
-    Block(qint64 pOffset = 0, uint pLength = 0) : offset(pOffset), length(pLength) {}
+    size_t offset;
+    size_t length;
+    Block(size_t pOffset = 0, size_t pLength = 0) : offset(pOffset), length(pLength) {}
 };
 
 struct Block2Buf
 {
-    qint64 offset_read;
-    qint64 offset_write;
-    Block2Buf(qint64 pOffsetRead = 0, qint64 pOffsetWrite = 0): offset_read(pOffsetRead), offset_write(pOffsetWrite) {}
+    size_t offset_read;
+    size_t offset_write;
+    Block2Buf(size_t pOffsetRead = 0, size_t pOffsetWrite = 0): offset_read(pOffsetRead), offset_write(pOffsetWrite) {}
 
     inline bool operator < ( const Block2Buf& b) const
     {

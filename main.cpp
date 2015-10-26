@@ -1,125 +1,123 @@
 #include <ctime>
-#include <QDebug>
-#include <QCoreApplication>
-#include <QTime>
-#include <QTextCodec>
+#include <string>
+#include <cstdio>
 
 #include "shuf-t.h"
 #include "utils.h"
 
 #include <unistd.h> // for isatty()
 
-QString source_filename;
-QString destination_filename;
+string source_filename;
+string destination_filename;
 bool use_input_range;
-uint input_range_min = 0;
-uint input_range_max = 0;
+size_t input_range_min = 0;
+size_t input_range_max = 0;
 
+using namespace std;
 
-inline bool getRangeArgument(QString s, uint& i1, uint& i2)
+inline bool getRangeArgument(string s, size_t& i1, size_t& i2)
 {
-    QStringList sl = s.split('-', QString::SkipEmptyParts);
-    bool ok = sl.count() == 2 && !sl[1].isEmpty();
-    if(ok)
+    vector<string> sl = split(s, '-');
+    if (!(sl.size() != 2) && (sl[1].size() <= 0)) return false;
+
+    try
     {
-        i1 = sl[0].toUInt(&ok);
-        if(ok)
-            i2 = sl[1].toUInt(&ok);
+        i1 = atol( sl[0].data() );
     }
-    return ok;
+    catch(...) { return false; }
+
+    try
+    {
+        i2 = atol( sl[1].data() );
+    }
+    catch(...) { return false; }
+
+    return true;
 }
 
-uint processCommandLineArguments(QCommandLineParser& parser)
+size_t processCommandLineArguments(po::variables_map& vm)
 {
     //get shuffle parameters
-    if(parser.isSet("b"))
-        _param_buffer_size = parser.value("b").toFloat()*1024*1024;
 
-    if(parser.isSet("q"))
-        _param_verbose = !parser.value("q").toInt();
+    if(vm.count("buffer"))
+        _param_buffer_size = vm["buffer"].as<float>()*1024*1024;
+
+    _param_verbose = !vm.count("quiet");
 
     _is_terminal =  isatty(fileno(stdout));
 
-    if(parser.isSet("t"))
-        _param_header  = parser.value("t").toUInt();
+    if(vm.count("top"))
+        _param_header  = vm["top"].as<int>();
 
-    if(parser.isSet("n"))
-        _param_output_limit  = parser.value("n").toUInt();
+    if(vm.count("head-count"))
+        _param_output_limit  = vm["head-count"].as<int>();
 
-    if (parser.isSet("l") && !getRangeArgument(parser.value("l"), _param_start_line, _param_end_line))
-        {
-        qCritical() << "lines argument is incorrect. Please use --help for format details.";
+    if (vm.count("lines") && !getRangeArgument(vm["lines"].as<string>(), _param_start_line, _param_end_line))
+    {
+        fprintf(stderr, "lines argument is incorrect. Please use --help for format details.");
         return -1;
-        }
+    }
 
     swapIfNeeded(_param_start_line, _param_end_line);
 
-    if(parser.isSet("o"))
-        destination_filename  = parser.value("o");
+    if(vm.count("output"))
+        destination_filename = vm["output"].as<string>();
 
-    uint seed  = 0;
-    if(parser.isSet("s"))
+    size_t seed  = 0;
+    if(vm.count("seed"))
     {
-        seed  = parser.value("s").toUInt();
+        seed  = vm["seed"].as<int>();
     } else
         seed = time(NULL);
 
     srand(seed);
     print("random seed: ");
-    print(QString::number(seed)+"\n");
+    stringstream ss;
+    ss << seed << '\n';
+    print(ss.str());
 
 
 
     use_input_range = false;
 
-    if ( (use_input_range = parser.isSet("i")) && !getRangeArgument(parser.value("i"), input_range_min, input_range_max))
-        {
-            qCritical() << "--input_range argument is incorrect. Please use --help for format details.";
-            return -1;
-        }
+    if ( (use_input_range = vm.count("input_range")) && !getRangeArgument(vm["input_range"].as<string>(), input_range_min, input_range_max))
+    {
+        fprintf(stderr, "--input_range argument is incorrect. Please use --help for format details.");
+        return -1;
+    }
 
     swapIfNeeded(input_range_min, input_range_max);
 
-    QStringList pos_args = parser.positionalArguments();
-    if (pos_args.count() > 0)
-      source_filename = pos_args[0];
+    if (vm.count("input-file"))
+        source_filename = vm["input-file"].as< vector<string> >()[0];
 
-    if (use_input_range && !source_filename.isEmpty())
+    if (use_input_range && !source_filename.empty())
     {
-        qWarning() << "WARNING: Both output file and -i parameter are specified. Output file is ignored.";
+        fprintf(stderr, "WARNING: Both output file and -i parameter are specified. Output file is ignored.");
     }
 
-return 0;
+    return 0;
 
 }
 
 int main(int argc, char *argv[])
 {
+    po::variables_map vm;
+    if (!initCommandLineOptions(vm, argc, argv)) return 0;
 
-    QCoreApplication app(argc, argv);
-    QCoreApplication::setApplicationName("Shuf-t");
-    QCoreApplication::setApplicationVersion("1.1");
-
-    QCommandLineParser parser;
-    initCommandOptionsParser(parser);
-    parser.process(app);
-
-    uint result = processCommandLineArguments(parser);
+    size_t result = processCommandLineArguments(vm);
     if (result != 0)
         return result;
 
 
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP1251"));
-
-    if (!use_input_range && source_filename.isEmpty())
+    if (!use_input_range && source_filename.empty())
     {
         print("reading data from stdin...\n");
-        source_filename = readStdinToTmpFile();
+//        source_filename = readStdinToTmpFile(); //TODO
     }
 
-
-    QTime performance_timer;
-    performance_timer.start();
+    clock_t performance_timer;
+    performance_timer = clock();
 
     io_buf in;
 
@@ -128,40 +126,42 @@ int main(int argc, char *argv[])
     {
         result = openInputRangeSource(in, input_range_min, input_range_max);
     } else {
-        if( !source_filename.isEmpty() )
-        result = openFileSource(in, source_filename);
+        if( !source_filename.empty() )
+            result = openFileSource(in, source_filename);
     }
 
-    print("offsets found: "+ QString::number(metadata.count())+'\n');
-    printTime(performance_timer.elapsed());
-    performance_timer.restart();
+    stringstream ss;
+    ss << "offsets found: " << metadata.size() << '\n';
+    print(ss.str());    
+    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC *1000.);
+    performance_timer = clock();
 
     io_buf out;
 
-    if (!destination_filename.isEmpty())
+    if (!destination_filename.empty())
     {
         result = openFileDestination(out, destination_filename);
-    } else {        
+    } else {
         result = openStdOutDestination(out);
     }
 
-//    in.setCodec("CP1251");
-//    in.autoDetectUnicode(false);
-//    out.setCodec("CP1251");
-//    out.autoDetectUnicode(false);
+    //    in.setCodec("CP1251");
+    //    in.autoDetectUnicode(false);
+    //    out.setCodec("CP1251");
+    //    out.autoDetectUnicode(false);
 
     print("shuffling line offsets:  ");
 
     shuffleMetadata();
 
-    printTime(performance_timer.elapsed());
-    performance_timer.restart();
+    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC*1000.);
+    performance_timer = clock();
 
     print("writing lines to output: ");
 
     writeData(in, out);
 
-    printTime(performance_timer.elapsed());
+    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC*1000.);
 
     closeFileDestination();
 
