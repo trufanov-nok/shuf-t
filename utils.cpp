@@ -3,11 +3,11 @@
 
 const char* SHUF_T_VERSION = "1.2";
 
-void printTime(const int msc)
+void printTime(double msc)
 {
-    int hours = msc/3600000;
-    int minutes = msc/60000 % 60;
-    float seconds = fmod((double)msc/1000.0,60.0);
+    int hours = msc/3600;
+    int minutes = ((int)msc)/60 % 60;
+    float seconds = fmod(msc, 60.0);
 
 
     string str;
@@ -25,7 +25,7 @@ bool initCommandLineOptions(po::variables_map& vm, int argc, char *argv[])
         desc.add_options()
                 ("version,v", "Display version of application.")
                 ("help,h", "Display this help.")
-                ("input_range,i", po::value< string > (), "Acts as if input came from a file containing the range of unsigned decimal integers LO-HI, one per line.")
+                ("input_range,i", po::value< string > (), "Acts as if input came from a file containing the range of unsigned decimal integers LO-HI, one per line. Example: -i 10-100 ")
                 ("output,o",  po::value< string > (), "Write output to OUTPUT-FILE instead of standard output.")
                 ("head-count,n", po::value< int > ()->default_value(0), "Output at most COUNT lines. By default, all input lines are output.")
                 ("buffer,b", po::value< float > ()->default_value(1024), "Buffer size in MiB for read operations. Default is 1 GiB.")
@@ -74,7 +74,7 @@ bool initCommandLineOptions(po::variables_map& vm, int argc, char *argv[])
         catch(po::error& e)
         {
             std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
-            std::cerr << desc << std::endl;
+//            std::cerr << desc << std::endl;
             return false;
         }
 

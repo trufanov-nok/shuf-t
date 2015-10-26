@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "settings.h"
 #include <cmath>
 #include <string>
 #include <sstream>
@@ -24,11 +25,9 @@ template < typename T > string to_string( const T& n )
     }
 
 
-extern bool _param_verbose;
-extern bool _is_terminal;
 inline void print(const char* s)
 {
-    if (_param_verbose)
+    if (settings.verbose)
     {
         fprintf(stderr, "%s",  s);
         fflush(stderr);
@@ -50,7 +49,28 @@ inline void swapIfNeeded(size_t& i1, size_t& i2)
     }
 }
 
-void printTime(const int msc);
+inline bool getRangeArgument(const string arg, size_t& i1, size_t& i2)
+{
+    vector<string> s = split(arg, '-');
+    if (!(s.size() != 2) && (s[1].size() <= 0))
+        return false;
+
+    try
+    {
+        i1 = atol( s[0].data() );
+    }
+    catch(...) { return false; }
+
+    try
+    {
+        i2 = atol( s[1].data() );
+    }
+    catch(...) { return false; }
+
+    return true;
+}
+
+void printTime(const double msc);
 bool initCommandLineOptions(boost::program_options::variables_map &vm, int argc, char *argv[]);
 
 #endif // UTILS_H

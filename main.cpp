@@ -1,67 +1,30 @@
-#include <ctime>
-#include <string>
-#include <cstdio>
-
 #include "shuf-t.h"
 #include "utils.h"
 
-#include <unistd.h> // for isatty()
-
-string source_filename;
-string destination_filename;
-bool use_input_range;
-size_t input_range_min = 0;
-size_t input_range_max = 0;
+ShuftSettings settings;
 
 using namespace std;
 
-inline bool getRangeArgument(string s, size_t& i1, size_t& i2)
-{
-    vector<string> sl = split(s, '-');
-    if (!(sl.size() != 2) && (sl[1].size() <= 0)) return false;
+#define time_elapsed ((double)( clock() - performance_timer )) /  CLOCKS_PER_SEC
 
-    try
-    {
-        i1 = atol( sl[0].data() );
-    }
-    catch(...) { return false; }
-
-    try
-    {
-        i2 = atol( sl[1].data() );
-    }
-    catch(...) { return false; }
-
-    return true;
-}
-
-size_t processCommandLineArguments(po::variables_map& vm)
+int processCommandLineArguments(po::variables_map& vm)
 {
     //get shuffle parameters
 
-    if(vm.count("buffer"))
-        _param_buffer_size = vm["buffer"].as<float>()*1024*1024;
+    settings.verbose = !vm.count("quiet");
 
-    _param_verbose = !vm.count("quiet");
-
-    _is_terminal =  isatty(fileno(stdout));
-
-    if(vm.count("top"))
-        _param_header  = vm["top"].as<int>();
-
-    if(vm.count("head-count"))
-        _param_output_limit  = vm["head-count"].as<int>();
-
-    if (vm.count("lines") && !getRangeArgument(vm["lines"].as<string>(), _param_start_line, _param_end_line))
+    if(vm.count("buffer"))  settings.buffer_size = vm["buffer"].as<float>()*1024*1024;
+    if(vm.count("top"))     settings.header  = vm["top"].as<int>();
+    if(vm.count("head-count"))  settings.output_limit  = vm["head-count"].as<int>();
+    if (vm.count("lines"))
     {
-        fprintf(stderr, "lines argument is incorrect. Please use --help for format details.");
-        return -1;
+        if(!getRangeArgument(vm["lines"].as<string>(), settings.start_line, settings.end_line))
+        {
+            fprintf(stderr, "lines argument is incorrect. Please use --help for format details.");
+            return -1;
+        }
+        swapIfNeeded(settings.start_line, settings.end_line);
     }
-
-    swapIfNeeded(_param_start_line, _param_end_line);
-
-    if(vm.count("output"))
-        destination_filename = vm["output"].as<string>();
 
     size_t seed  = 0;
     if(vm.count("seed"))
@@ -77,23 +40,51 @@ size_t processCommandLineArguments(po::variables_map& vm)
     print(ss.str());
 
 
-
-    use_input_range = false;
-
-    if ( (use_input_range = vm.count("input_range")) && !getRangeArgument(vm["input_range"].as<string>(), input_range_min, input_range_max))
+    bool ir_src = false;
+    if (vm.count("input_range"))
     {
-        fprintf(stderr, "--input_range argument is incorrect. Please use --help for format details.");
-        return -1;
+        settings.src = SOURCE_INPUT_RANGE;
+        IRData* ir = new IRData();
+        settings.src_data = ir;
+
+        if (!getRangeArgument(vm["input_range"].as<string>(), ir->min, ir->max))
+        {
+            fprintf(stderr, "--input_range argument is incorrect. Please use --help for format details.");
+            return -1;
+        }
+
+        swapIfNeeded(ir->min, ir->max);
+        ir_src = true;
     }
 
-    swapIfNeeded(input_range_min, input_range_max);
 
     if (vm.count("input-file"))
-        source_filename = vm["input-file"].as< vector<string> >()[0];
-
-    if (use_input_range && !source_filename.empty())
     {
-        fprintf(stderr, "WARNING: Both output file and -i parameter are specified. Output file is ignored.");
+        if (!ir_src)
+        {
+            settings.src = SOURCE_FILE;
+            FileData* fd = new FileData();
+            settings.src_data = fd;
+            fd->setFilename( vm["input-file"].as< vector<string> >()[0] );
+        } else fprintf(stderr, "WARNING: Both input file and --input_range parameter are specified. Input file is ignored.");
+    } else if (!ir_src)
+    {
+        //stdin
+        settings.src = SOURCE_STDIN;
+        settings.src_data = new TempFileData();
+    }
+
+    if(vm.count("output"))
+    {
+        settings.dst = DEST_FILE;
+        FileData* fd = new FileData();
+        settings.dst_data = fd;
+        fd->setFilename( vm["output"].as<string>(), io_buf::WRITE);
+    } else {
+        settings.dst = DEST_STDOUT;
+        io_buf* buf =  new io_buf();
+        settings.dst_data = buf;
+        buf->open_file(NULL, io_buf::WRITE);
     }
 
     return 0;
@@ -103,74 +94,103 @@ size_t processCommandLineArguments(po::variables_map& vm)
 int main(int argc, char *argv[])
 {
     po::variables_map vm;
+
     if (!initCommandLineOptions(vm, argc, argv)) return 0;
 
-    size_t result = processCommandLineArguments(vm);
+    int result = processCommandLineArguments(vm);
     if (result != 0)
         return result;
 
+    clock_t performance_timer;
 
-    if (!use_input_range && source_filename.empty())
+
+    if (settings.src == SOURCE_STDIN)
     {
+        performance_timer = clock();
         print("reading data from stdin...\n");
-//        source_filename = readStdinToTmpFile(); //TODO
+        std::FILE* tempFile = readStdinToTmpFile();
+        ((TempFileData*)settings.src_data)->setPtr(tempFile);
+        printTime(time_elapsed);
+        if (!tempFile) return -2;
     }
 
-    clock_t performance_timer;
     performance_timer = clock();
 
-    io_buf in;
 
     print("searching line offsets:  ");
-    if (use_input_range)
+
+    io_buf* in;
+
+    switch (settings.src)
     {
-        result = openInputRangeSource(in, input_range_min, input_range_max);
-    } else {
-        if( !source_filename.empty() )
-            result = openFileSource(in, source_filename);
+    case SOURCE_INPUT_RANGE:
+    {
+        IRData* ir_data = (IRData*)settings.src_data;
+        std::FILE* tempFile = openTmpFile();
+        if (!tempFile) return -2;
+        ir_data->tempFile.setPtr( tempFile );
+
+        in = &ir_data->tempFile.file_stream;
+        storeInputRangeToFile(ir_data->tempFile.ptr(), ir_data->min, ir_data->max);
+        in->reset();
+        result = readMetadata(*in, in->size());
+        break;
     }
+    case SOURCE_FILE:
+    {
+        FileData* fd = (FileData*)settings.src_data;
+        in = &fd->file_stream;
+        result = readMetadata(*in, in->size());
+        break;
+    }
+    case SOURCE_STDIN:
+    {
+        TempFileData* tfd = (TempFileData*)settings.src_data;
+        in = &tfd->file_stream;
+        in->reset();
+        result = readMetadata(*in, in->size());
+        break;
+    }
+    default: break;
+    }
+
+
+    io_buf* out;
+    if (settings.dst == DEST_FILE)
+        out = &((FileData*)settings.dst_data)->file_stream;
+    else
+        out = (io_buf*) settings.dst_data;
 
     stringstream ss;
-    ss << "offsets found: " << metadata.size() << '\n';
-    print(ss.str());    
-    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC *1000.);
+    ss << "offsets found: " << settings.metadata.size() << '\n';
+    print(ss.str());
+    printTime(time_elapsed);
     performance_timer = clock();
 
-    io_buf out;
-
-    if (!destination_filename.empty())
-    {
-        result = openFileDestination(out, destination_filename);
-    } else {
-        result = openStdOutDestination(out);
-    }
-
-    //    in.setCodec("CP1251");
-    //    in.autoDetectUnicode(false);
-    //    out.setCodec("CP1251");
-    //    out.autoDetectUnicode(false);
 
     print("shuffling line offsets:  ");
 
     shuffleMetadata();
 
-    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC*1000.);
+    printTime(time_elapsed);
     performance_timer = clock();
 
     print("writing lines to output: ");
 
-    writeData(in, out);
 
-    printTime(( clock() - performance_timer ) / (double) CLOCKS_PER_SEC*1000.);
+    writeData(*in, *out);
 
-    closeFileDestination();
+    if (settings.dst == DEST_FILE)
+      ((FileData*)settings.dst_data)->file_stream.close_file();
 
-    if (use_input_range)
-    {
-        closeInputRangeSource();
-    } else {
-        closeFileSource();
-    }
+    if (settings.src == SOURCE_FILE)
+        ((FileData*)settings.src_data)->file_stream.close_file();
+    else if (settings.src == SOURCE_STDIN)
+        ((TempFileData*)settings.src_data)->file_stream.close_file();
+    else  ((IRData*)settings.src_data)->tempFile.file_stream.close_file();
+
+    printTime(time_elapsed);
+
 
     return 0;
 }

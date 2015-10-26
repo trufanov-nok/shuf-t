@@ -26,6 +26,7 @@ HEADERS += \
     shuf-t.h \
     utils.h \
     io_buf.h \
-    v_array.h
+    v_array.h \
+    settings.h
 
 
