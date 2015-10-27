@@ -7,7 +7,7 @@ Maintainer: Alexander Trufanov <trufanovan@gmail.com>
 Homepage: https://github.com/trufanov-nok/shuf-t
 Priority: optional
 Architecture: amd64
-Depends: libboost-program-options, libc6
+Depends: libboost-program-options1.58.0 (>=1.58), libc6
 Description: Shuffles lines of the files bigger than available RAM
  This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:
  1. The file is scanned and offsets of all lines are stored in RAM.
@@ -17,7 +17,7 @@ Description: Shuffles lines of the files bigger than available RAM
 <</CTRL>>
 <<FILES>>
 1
-/home/truf/dev/build-shuf-t-Desktop_Qt_5_4_1_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
+/home/truf/dev/build-shuf-t-Desktop_Qt_5_4_2_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
 <</FILES>>
 <<SCRIPTS>>
 <<PREINST>>
