@@ -17,7 +17,7 @@ void printTime(double msc)
     string str;
     if (hours > 0) str = (boost::format("%ih ") % hours).str();
     if (minutes > 0) str.append((boost::format("%i min ") % minutes).str());
-    str.append((boost::format("%2.2f sec\n") % seconds).str());
+    str.append((boost::format("%i sec\n") % seconds).str());
 
     print(str);
 }
