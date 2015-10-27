@@ -1,3 +1,7 @@
+/*
+Copyright (c) by Alexander Trufanov. Released under a Simplified BSD
+license as described in the file LICENSE.
+ */
 #ifndef METADATA_H
 #define METADATA_H
 #include <cstdlib>

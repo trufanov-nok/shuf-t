@@ -1,3 +1,7 @@
+/*
+Copyright (c) by Alexander Trufanov. Released under a Simplified BSD
+license as described in the file LICENSE.
+ */
 #ifndef SETTINGS_H
 #define SETTINGS_H
 #include <vector>

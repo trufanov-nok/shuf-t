@@ -1,3 +1,7 @@
+/*
+Copyright (c) by Alexander Trufanov. Released under a Simplified BSD
+license as described in the file LICENSE.
+ */
 #include "shuf-t.h"
 #include "utils.h"
 

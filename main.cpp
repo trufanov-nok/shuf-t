@@ -1,3 +1,7 @@
+/*
+Copyright (c) by Alexander Trufanov. Released under a Simplified BSD
+license as described in the file LICENSE.
+ */
 #include "shuf-t.h"
 #include "utils.h"
 
@@ -20,7 +24,7 @@ int processCommandLineArguments(po::variables_map& vm)
     {
         if(!getRangeArgument(vm["lines"].as<string>(), settings.start_line, settings.end_line))
         {
-            fprintf(stderr, "lines argument is incorrect. Please use --help for format details.");
+            fprintf(stderr, "invalid lines range ‘%s'", vm["lines"].as<string>().data());
             return -1;
         }
         swapIfNeeded(settings.start_line, settings.end_line);
@@ -49,7 +53,7 @@ int processCommandLineArguments(po::variables_map& vm)
 
         if (!getRangeArgument(vm["input_range"].as<string>(), ir->min, ir->max))
         {
-            fprintf(stderr, "--input_range argument is incorrect. Please use --help for format details.");
+            fprintf(stderr, "invalid input range ‘%s'", vm["input_range"].as<string>().data());
             return -1;
         }
 
@@ -151,7 +155,7 @@ int main(int argc, char *argv[])
         result = readMetadata(*in, in->size());
         break;
     }
-    default: break;
+    default: in = NULL; break;
     }
 
 

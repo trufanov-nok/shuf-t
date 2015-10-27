@@ -1,3 +1,7 @@
+/*
+Copyright (c) by Alexander Trufanov. Released under a Simplified BSD
+license as described in the file LICENSE.
+ */
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -52,8 +56,7 @@ inline void swapIfNeeded(size_t& i1, size_t& i2)
 inline bool getRangeArgument(const string arg, size_t& i1, size_t& i2)
 {
     vector<string> s = split(arg, '-');
-    if (!(s.size() != 2) && (s[1].size() <= 0))
-        return false;
+    if (s.size() != 2) return false;
 
     try
     {
