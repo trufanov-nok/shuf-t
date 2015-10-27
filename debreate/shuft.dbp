@@ -1,13 +1,13 @@
 [DEBREATE-0.7.10]
 <<CTRL>>
 Package: shuf-t
-Version: 1.1
+Version: 1.2
 Section: utils
 Maintainer: Alexander Trufanov <trufanovan@gmail.com>
 Homepage: https://github.com/trufanov-nok/shuf-t
 Priority: optional
 Architecture: amd64
-Depends: qtbase5-dev, libc6
+Depends: libboost-program-options, libc6
 Description: Shuffles lines of the files bigger than available RAM
  This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:
  1. The file is scanned and offsets of all lines are stored in RAM.
@@ -35,6 +35,12 @@ Description: Shuffles lines of the files bigger than available RAM
 <</SCRIPTS>>
 <<CHANGELOG>>
 <<DEST>>DEFAULT<</DEST>>
+ (1.2) ; urgency=low
+
+  * Qt dependencies were removed
+
+ --  <>  Tue, 27 Oct 2015 13:59:40 +0300
+
  (1.1) ; urgency=low
 
   * text stream bug is fixed
@@ -57,12 +63,30 @@ Upstream-Name: shuf-t
 Source: https://github.com/trufanov-nok/shuf-t
 
 Files: *
-Copyright: 2014  Alexander Trufanov <trufanovan@gmail.com>
-License: LGPL-3.0+
- /usr/share/common-licenses/LGPL
+Copyright: 2015  Alexander Trufanov <trufanovan@gmail.com>
+License: Simple BSD
 
+All rights reserved.
 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 <</COPYRIGHT>>
 <<MENU>>

@@ -29,4 +29,4 @@ HEADERS += \
     v_array.h \
     settings.h
 
-
+QMAKE_LFLAGS_RPATH=

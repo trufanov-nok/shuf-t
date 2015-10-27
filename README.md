@@ -29,7 +29,7 @@ Options:
 
 
 Changelog:
-1.2 - Qt dependencies were removed (Qt Creator and qmake are still used for building the project). Now app depends only on boost_program_options library.
-1.1 - critical bug fixed in IO stream
-      use stderr instead of stdout to print notifications
-1.0 - initial release.
+1.2 - Qt dependencies were removed (Qt Creator and qmake are still used for building the project). Now app depends only on boost_program_options library.  
+1.1 - critical bug fixed in IO stream  
+      use stderr instead of stdout to print notifications  
+1.0 - initial release.  
