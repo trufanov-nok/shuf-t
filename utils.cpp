@@ -7,17 +7,18 @@ license as described in the file LICENSE.
 
 const char* SHUF_T_VERSION = "1.2";
 
-void printTime(double msc)
+void printTime(const time_t msc)
 {
-    int hours = msc/3600;
-    int minutes = ((int)msc)/60 % 60;
-    float seconds = fmod(msc, 60.0);
+    double sec = (double)msc/1000.;
+    int hours = sec/3600;
+    int minutes = ((int)sec)/60 % 60;
+    float seconds = fmod(sec, 60.0);
 
 
     string str;
     if (hours > 0) str = (boost::format("%ih ") % hours).str();
     if (minutes > 0) str.append((boost::format("%i min ") % minutes).str());
-    str.append((boost::format("%i sec\n") % seconds).str());
+    str.append((boost::format("%.2f sec\n") % seconds).str());
 
     print(str);
 }

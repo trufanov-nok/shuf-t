@@ -4,13 +4,21 @@ license as described in the file LICENSE.
  */
 #include "shuf-t.h"
 #include "utils.h"
-#include <time.h>
+#include <sys/timeb.h>
 
 ShuftSettings settings;
 
 using namespace std;
 
-#define time_elapsed difftime( time(NULL), performance_timer )
+timeb prev_time;
+void printElapsedTime(timeb& prevTime = prev_time, bool reset = true)
+{
+    timeb t_end;
+    ftime(&t_end);
+    time_t net_time = 1000 * (t_end.time - prevTime.time) + (t_end.millitm - prevTime.millitm);
+    printTime(net_time);
+    if (reset) prevTime = t_end;
+}
 
 int processCommandLineArguments(po::variables_map& vm)
 {
@@ -106,20 +114,16 @@ int main(int argc, char *argv[])
     if (result != 0)
         return result;
 
-    time_t performance_timer;
-
+    ftime(&prev_time);
 
     if (settings.src == SOURCE_STDIN)
-    {
-        performance_timer = time(NULL);;
+    {        
         print("reading data from stdin...\n");
         std::FILE* tempFile = readStdinToTmpFile();
         ((TempFileData*)settings.src_data)->setPtr(tempFile);
-        printTime(time_elapsed);
+        printElapsedTime();
         if (!tempFile) return -2;
     }
-
-    performance_timer = time(NULL);
 
 
     print("searching line offsets:  ");
@@ -169,16 +173,14 @@ int main(int argc, char *argv[])
     stringstream ss;
     ss << "offsets found: " << settings.metadata.size() << '\n';
     print(ss.str());
-    printTime(time_elapsed);
-    performance_timer = time(NULL);;
+    printElapsedTime();
 
 
     print("shuffling line offsets:  ");
 
     shuffleMetadata();
 
-    printTime(time_elapsed);
-    performance_timer = time(NULL);;
+    printElapsedTime();
 
     print("writing lines to output: ");
 
@@ -194,7 +196,7 @@ int main(int argc, char *argv[])
         ((TempFileData*)settings.src_data)->file_stream.close_file();
     else  ((IRData*)settings.src_data)->tempFile.file_stream.close_file();
 
-    printTime(time_elapsed);
+    printElapsedTime();
 
 
     return 0;

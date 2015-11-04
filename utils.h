@@ -73,7 +73,7 @@ inline bool getRangeArgument(const string arg, size_t& i1, size_t& i2)
     return true;
 }
 
-void printTime(const double msc);
+void printTime(const time_t msc);
 bool initCommandLineOptions(boost::program_options::variables_map &vm, int argc, char *argv[]);
 
 #endif // UTILS_H
