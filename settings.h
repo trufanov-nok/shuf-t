@@ -73,8 +73,13 @@ struct ShuftSettings
     SuftDestinations dst;
     void* dst_data;
     vector< Block > metadata;
+    vector<size_t> metadata_split;
+    vector<io_buf*> temp_files;
+    char* buffer;
+    size_t buffer_used;
+    size_t first_line_to_read;
 
-    ShuftSettings(): src_data(NULL), dst_data(NULL)
+    ShuftSettings(): src_data(NULL), dst_data(NULL), buffer(NULL), buffer_used(0)
     {
         terminal =  isatty(fileno(stdout));
     }
@@ -96,6 +101,9 @@ struct ShuftSettings
             else  delete (IRData*)src_data;
 
         }
+
+        if (buffer) free(buffer);
+
     }
 };
 

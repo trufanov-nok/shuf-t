@@ -172,7 +172,7 @@ class io_buf {
 
   virtual void flush() {
       if (write_file(space.begin, space.size()) != (int) space.size())
-      std::cerr << "error, failed to write example\n";
+      std::cerr << "error, failed to write file\n";
     space.end = space.begin; }
 
   static void close_file_or_socket(int f);
@@ -195,6 +195,9 @@ class io_buf {
 
 void buf_write(io_buf &o, char* &pointer, size_t n);
 size_t buf_read(io_buf &i, char* &pointer, size_t n);
+
+inline bool buf_read_b(io_buf &i, char* &pointer, size_t n) {return buf_read(i, pointer, n) == n;}
+
 bool isbinary(io_buf &i);
 size_t readto(io_buf &i, char* &pointer, char terminal);
 

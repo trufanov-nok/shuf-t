@@ -36,10 +36,19 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
 
     char *line = NULL;
     size_t len;
+    bool first_line_to_read_found = false;
+
     while ((len = readto(src_file, line, '\n')))
     {
         if (skip_first_lines <= ++lines_processed)
+        {
             settings.metadata.push_back( Block(pos_start, len) );
+            if (!first_line_to_read_found)
+            {
+                settings.first_line_to_read = pos_start;
+                first_line_to_read_found = true;
+            }
+        }
 
         pos_start += len;
 
@@ -57,15 +66,20 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
         }
 
 
-        if(settings.end_line > 0 && lines_processed >= settings.end_line) break;
+        if (settings.end_line > 0 && lines_processed >= settings.end_line) break;
 
     }
+
+    settings.end_line = lines_processed;
 
     print("\n");
 
     if (remove_trailing_empty_line)
         if (settings.metadata.size() > 0 && (settings.metadata.end()-1)->length == 0)
+        {
             settings.metadata.pop_back();
+            settings.end_line--;
+        }
 
 
     return 0;
@@ -82,7 +96,7 @@ void shuffleMetadata()
     double progress = 0;
 
     if (n > 0)
-        for (size_t i = n-1; i > 0; i--)
+        for (size_t i = n-1; i > 0; --i)
         {
             size_t j = rand() % (i+1);
             if (j != i)
@@ -100,148 +114,285 @@ void shuffleMetadata()
             }
         }
 
+
     print("\n");
 }
 
-
-int writeData(io_buf& in_file, io_buf& out_file)
+int splitMetaData()
 {
-    int result = -1;
-    char * int_buffer = (char*) malloc(settings.buffer_size);
-
-    if(int_buffer == NULL)
-    {
-        fprintf(stderr, "can't allocate enough memory");
-        return result;
-    }
-
-    in_file.seek(0);
-    char *line = NULL;
-
-    // copy header from the beginning of input
-    size_t pos_input = 0;
-    while (settings.header--)
-    {
-        size_t len = readto(in_file, line, '\n');
-        pos_input += len;
-        bin_write_fixed(out_file, line, len);
-    }
-
     // copy data
-    size_t total_blocks = settings.metadata.size();
-    size_t blocks_left;
-    if (settings.output_limit > 0)
-        blocks_left = min(settings.output_limit, total_blocks);
-    else
-        blocks_left = total_blocks;
-
-    double blocks_processed = 0;
-    double progress_step = (double) blocks_left/10.;
-    double progress = 0;
-    result = 0;
-
-    while (result == 0 && blocks_left > 0)
+    if ((settings.output_limit > 0) && (settings.output_limit < settings.metadata.size()))
     {
-        vector<Block2Buf> blocks_to_read;
+        settings.metadata.erase(settings.metadata.begin()+settings.output_limit, settings.metadata.end());
+        settings.end_line = settings.output_limit;
+        settings.output_limit = 0;
+    }
+
+    size_t blocks_left = settings.metadata.size();
+
+    size_t block_idx = 0;
+    size_t rolling_offset = 0;
+
+    while (block_idx < blocks_left)
+    {
         size_t buffer_size_left = settings.buffer_size;
 
-        size_t blocks_marked = 0;
-
-
         // mark as many blocks as could fit our buffer
-
-        while (blocks_marked < blocks_left)
+        while (block_idx < blocks_left)
         {
-            Block& next_block = settings.metadata[blocks_marked];
-            size_t block_len = next_block.length;
+            Block& b = settings.metadata[block_idx];
+            size_t block_len = b.length;
 
             if (block_len <= buffer_size_left)
             {   // block still can fit the buffer
-                blocks_to_read.push_back(Block2Buf(next_block.offset, settings.buffer_size-buffer_size_left));
+                b.offset_write = rolling_offset;
                 buffer_size_left -= block_len;
-
-                blocks_marked++;
+                block_idx++;
+                rolling_offset += block_len;
             } else
             {   // buffer is filled
+                settings.metadata_split.push_back(rolling_offset);
                 break;
             }
         }
 
 
-        if(blocks_marked == 0)
+        if (buffer_size_left == settings.buffer_size)
         {   // nothing was marked
-            if (blocks_left > 0)
+            if (block_idx < blocks_left)
             {   // but there was data to write
                 print("error: block is bigger than buffer"); //need to return -1
-                result = -1;
+                return -1;
             }
             break;
-        } else {
-            settings.metadata.erase(settings.metadata.begin(), settings.metadata.begin()+blocks_marked);
-            blocks_left -= blocks_marked;
-        }
-
-        // sort blocks by offset toread them from input with one scan
-        std::sort(blocks_to_read.begin(), blocks_to_read.end());
-
-        // read blocks from input to buffer
-
-        for(size_t i = 0; i < blocks_to_read.size(); ++i)
-        {
-            Block2Buf& block = blocks_to_read[i];
-            if (pos_input != block.offset_read)
-            {
-                if(in_file.seek(block.offset_read) == -1) //always forward
-                {
-                    result = -1;
-                    print("internal error\n");
-                    break;
-                }
-
-                pos_input = block.offset_read;
-            }
-
-            size_t len = readto(in_file, line, '\n');
-            pos_input += len;
-
-            memcpy( int_buffer+block.offset_write, line, len);
-        }
-
-
-        // save buffer to output
-        size_t pos_buffer = 0;
-        size_t buffer_size_used = settings.buffer_size - buffer_size_left;
-
-
-        while (pos_buffer < buffer_size_used)
-        {
-            int write_len =  min(QTEXTSTREAM_BUFFERSIZE, (int) (buffer_size_used - pos_buffer));
-            char*  buf = int_buffer+pos_buffer;
-            bin_write_fixed(out_file, buf, write_len);
-            pos_buffer += write_len;
-        }
-
-        // progress by blocks
-        if (settings.output_limit > 0)
-            blocks_processed = min(settings.output_limit,total_blocks) - blocks_left;
-        else
-            blocks_processed = total_blocks - blocks_left;
-
-        while (blocks_processed - progress > 1e-5)
-        {
-            progress += progress_step;
-            print(".");
         }
 
 
     }
 
-    out_file.flush();
+    return 0;
+}
+
+inline int get_split_index(const size_t offset)
+{
+    assert(!settings.metadata_split.empty());
+    for (int i = 0; i < (int)settings.metadata_split.size(); ++i)
+        if (offset < settings.metadata_split[i]) return i-1;
+
+    return settings.metadata_split.size()-1;
+}
+
+int splitData(io_buf& in_file, io_buf& out_file)
+{
+
+    // sort metadata by offset_read
+    std::sort(settings.metadata.begin(), settings.metadata.end());
+
+    // first buffer can be assembled from input file
+    char* int_buffer = (char*) malloc(settings.buffer_size);
+
+    if(int_buffer == NULL)
+    {
+        fprintf(stderr, "can't allocate enough memory");
+        return -1;
+    } else settings.buffer = int_buffer;
+
+
+    // prepare temp files
+    const bool no_splits = settings.metadata_split.empty();
+    if (!no_splits)
+        for (size_t i = 0; i < settings.metadata_split.size(); ++i)
+        {
+            std::FILE* f = openTmpFile();
+            if (!f) return -1;
+            io_buf* io = new io_buf();
+            if (!io) return -1;
+            io->file = fileno(f);
+            settings.temp_files.push_back(io);
+        }
+
+
+    in_file.reset();
+
+    // copy header from the beginning of input
+    char *line = NULL;
+    size_t lines_processed = settings.header;
+    for (size_t i = 0; i < lines_processed; ++i)
+    {
+        size_t len = readto(in_file, line, '\n');
+        bin_write_fixed(out_file, line, len);
+    }
+
+    // copy data
+    double progress_step = (double) settings.end_line / 10;  //progress by lines read
+
+    if (progress_step <= 0) progress_step = 1; //file length 0 or 1
+
+    lines_processed = std::max(settings.header, settings.start_line);
+    double progress = lines_processed;
+
+    in_file.endloaded = in_file.space.begin; // reset io buffer
+    in_file.space.end = in_file.space.begin; // reset io buffer
+    in_file.seek(settings.first_line_to_read);
+
+    size_t metadata_idx = 0;
+    while (buf_read_b(in_file, line, settings.metadata[metadata_idx].length))
+    {
+
+        Block& b = settings.metadata[metadata_idx++];
+
+        int split_index;
+        if (no_splits || ((split_index = get_split_index(b.offset_write)) == -1))
+        { // can write to the memory buf
+            assert(b.offset_write < settings.buffer_size);
+            memcpy( settings.buffer+b.offset_write, line, b.length);
+            settings.buffer_used = max(settings.buffer_used, b.offset_write + b.length );
+        } else {
+            // have to write to a temp file
+            io_buf& sf = *settings.temp_files[split_index];
+            bin_write_fixed(sf, line, b.length);
+        }
+
+        lines_processed++;
+
+        while (lines_processed - progress > 1e-5)
+        {
+            print(".");
+            progress += progress_step;
+
+        }
+
+        if (lines_processed >= settings.end_line)
+            break;
+
+    }
+
+
+    for (size_t i = 0; i < settings.temp_files.size(); ++i)
+        settings.temp_files[i]->flush();
+
 
     print("\n");
 
-    free(int_buffer);
+    return 0;
 
+}
+
+std::vector<Block>::iterator getSubrangeEnd(size_t offset)
+{    
+    std::vector<Block>::iterator it;
+    for (it = settings.metadata.begin(); it < settings.metadata.end(); ++ it)
+        if (it->offset_write >= offset) return it;
+
+    return settings.metadata.end();
+}
+
+void DumpBuffer(io_buf& out_file)
+{
+    size_t pos_buffer = 0;
+    while (pos_buffer < settings.buffer_used)
+    {
+        size_t write_len =  min(QTEXTSTREAM_BUFFERSIZE, settings.buffer_used - pos_buffer);
+        char*  buf = settings.buffer + pos_buffer;
+        bin_write_fixed(out_file, buf, write_len);
+        pos_buffer += write_len;
+    }
+
+    out_file.flush();
+}
+
+int writeData(io_buf& out_file)
+{
+    int result = -1;
+
+    // write first buffer that already assembled in memory
+    DumpBuffer(out_file);
+
+    // assemble rest chunks from slit and write them
+    
+    if (!settings.temp_files.empty())
+    {
+        // to group metadata to blocks
+        std::sort(settings.metadata.begin(), settings.metadata.end(), Block::sort_by_write_offset);
+
+
+        // erase first block as it's already stored
+        std::vector<Block>::iterator block_end;
+        block_end = getSubrangeEnd(settings.metadata_split[0]);
+        settings.metadata.erase(settings.metadata.begin(), block_end);
+        assert(settings.metadata_split[0] == settings.metadata[0].offset_write);
+        settings.metadata_split.erase(settings.metadata_split.begin());
+
+
+
+        size_t total_blocks = settings.metadata.size();
+        double progress_step = total_blocks / 10.;
+        size_t blocks_left = total_blocks;
+        size_t blocks_processed= 0; double progress = 0;
+
+        while (!settings.temp_files.empty())
+        {
+            io_buf& split = *settings.temp_files[0];
+
+            if (settings.metadata_split.empty()) // last bufer
+                block_end = settings.metadata.end();
+            else
+                block_end = getSubrangeEnd(settings.metadata_split[0]);
+
+            const size_t offset_shift = settings.metadata[0].offset_write;
+            settings.buffer_used = (block_end-1)->offset_write+(block_end-1)->length;
+            settings.buffer_used -= offset_shift;
+            assert(settings.buffer_used <= settings.buffer_size);
+            // sort block lines as they were written to chunk
+            std::sort(settings.metadata.begin(), block_end);
+
+            split.reset();
+
+            size_t metadata_idx = 0;
+            char *line = NULL;
+
+            while (metadata_idx < settings.metadata.size() && buf_read_b(split, line, settings.metadata[metadata_idx].length))
+            {
+                Block& b = settings.metadata[metadata_idx++];
+                if (!settings.metadata_split.empty())
+                    assert(get_split_index(b.offset_write) == -1);
+                b.offset_write -= offset_shift;
+                assert(b.offset_write < settings.buffer_size);
+                memcpy( settings.buffer+b.offset_write, line, b.length);
+
+                blocks_left--;
+
+                // progress by blocks
+                blocks_processed = total_blocks - blocks_left;
+
+                while (blocks_processed - progress > 1e-5)
+                {
+                    progress += progress_step;
+                    print(".");
+                }
+            }
+
+            DumpBuffer(out_file);
+
+
+            //erase block's metadata
+            split.close_file();
+            delete settings.temp_files[0];
+            settings.temp_files.erase(settings.temp_files.begin());
+            if (!settings.metadata_split.empty())
+                settings.metadata_split.erase(settings.metadata_split.begin());
+            settings.metadata.erase(settings.metadata.begin(), block_end);
+
+        }
+
+        assert(settings.temp_files.empty());
+        assert(settings.metadata_split.empty());
+        assert(settings.metadata.empty());
+    }
+
+    print("\n");
+    
+    result = 0;
     return result;
 
 }

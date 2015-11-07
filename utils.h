@@ -16,7 +16,7 @@ license as described in the file LICENSE.
 using namespace std;
 namespace po = boost::program_options;
 
-static const int QTEXTSTREAM_BUFFERSIZE = 16384;
+static const size_t QTEXTSTREAM_BUFFERSIZE = 16384;
 
 vector<string> split(const string &s, char delim, bool skip_empty_parts = true);
 

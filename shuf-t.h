@@ -14,8 +14,10 @@ license as described in the file LICENSE.
 #include "settings.h"
 
 size_t readMetadata(io_buf& src_file, const size_t source_length = 0);
-int  writeData(io_buf& in_file, io_buf &out_file);
+int  writeData(io_buf &out_file);
+int splitData(io_buf& in_file, io_buf& out_file);
 void shuffleMetadata();
+int splitMetaData();
 
 void storeInputRangeToFile(FILE* f, size_t min, size_t max);
 std::FILE* openTmpFile();

@@ -177,15 +177,16 @@ int main(int argc, char *argv[])
 
 
     print("shuffling line offsets:  ");
-
     shuffleMetadata();
-
+    if (splitMetaData() != 0) return -1;
     printElapsedTime();
 
-    print("writing lines to output: ");
+    print("Splitting file to blocks: ");
+    splitData(*in, *out);
+    printElapsedTime();
 
-
-    writeData(*in, *out);
+    print("Assembling blocks to file: ");
+    writeData(*out);    
 
     if (settings.dst == DEST_FILE)
       ((FileData*)settings.dst_data)->file_stream.close_file();
