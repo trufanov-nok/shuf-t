@@ -9,21 +9,47 @@ bool remove_trailing_empty_line = true;
 
 size_t readMetadata(io_buf& src_file, const size_t source_length)
 {
-    double progress_step = 0;
 
-    if (settings.end_line > 0)
-        progress_step = (double) settings.end_line / 10;  //progress by lines read
-    else
-        progress_step = (double) source_length   / 10;  //progress by bytes read
+    // selecting progress step
+
+    double progress_step = 0;
+    bool progress_by_lines = false;
+
+    switch (settings.src)
+    {
+    case SOURCE_INPUT_RANGE:
+        progress_by_lines  = true;
+        IRData* ir = (IRData*) settings.src_data;
+        double lines_to_generate = fmin(ir->max - ir->min, settings.end_line);
+        progress_step = lines_to_generate / 10;
+        double lines_to_shuffle = lines_to_generate - settings.header- std::max(settings.start_line, (size_t) 1) + 1;
+        if (lines_to_shuffle > 0)
+        settings.metadata.reserve( (size_t)lines_to_shuffle );
+        break;
+    case SOURCE_FILE:
+        if (settings.end_line > 0)
+        {
+            progress_by_lines = true;
+            progress_step = (double) settings.end_line / 10;  //progress by lines read
+            settings.metadata.reserve(settings.end_line - std::max(settings.start_line, (size_t) 1) + 1);
+        }
+        else
+            progress_step = (double) source_length   / 10;  //progress by bytes read
+
+        break;
+    case SOURCE_STDIN:
+
+    }
+
+    if (settings.src == SOURCE_INPUT_RANGE)
+    {
+
+    } else
+        if (settings.src == SOURCE_FILE && )
 
     if (progress_step <= 0) progress_step = 1; //file length 0 or 1
 
     settings.metadata.clear();
-
-    if (settings.end_line > 0)
-    {
-        settings.metadata.reserve(settings.end_line - std::max(settings.start_line, (size_t) 1) + 1);
-    }
 
 
     double progress = 0;
@@ -37,6 +63,9 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
     char *line = NULL;
     size_t len;
     bool first_line_to_read_found = false;
+
+    io_buf* dest_file = NULL;
+    if (settings.src != SOURCE_FILE) dest_file = &src_file;
 
     while ((len = readto(src_file, line, '\n')))
     {
@@ -68,6 +97,8 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
 
         if (settings.end_line > 0 && lines_processed >= settings.end_line) break;
 
+        if (dest_file) // used for stdin and inut_range
+            bin_write(*dest_file, line, len);
     }
 
     settings.end_line = lines_processed;
@@ -406,20 +437,20 @@ std::FILE* openTmpFile()
     return f;
 }
 
-std::FILE* readStdinToTmpFile()
-{
-    std::FILE* f = openTmpFile();
-    if (f)
-    {
-        for (std::string line; std::getline(std::cin, line);)
-        {
-            std::fputs(line.data(), f);
-        }
-        std::rewind(f);
-    }
+//std::FILE* readStdinToTmpFile()
+//{
+//    std::FILE* f = openTmpFile();
+//    if (f)
+//    {
+//        for (std::string line; std::getline(std::cin, line);)
+//        {
+//            std::fputs(line.data(), f);
+//        }
+//        std::rewind(f);
+//    }
 
-    return f;
-}
+//    return f;
+//}
 
 
 void storeInputRangeToFile(FILE *f, size_t min, size_t max)

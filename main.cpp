@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
 
     ftime(&prev_time);
 
-    if (settings.src == SOURCE_STDIN)
-    {        
-        print("reading data from stdin...\n");
-        std::FILE* tempFile = readStdinToTmpFile();
-        ((TempFileData*)settings.src_data)->setPtr(tempFile);
-        printElapsedTime();
-        if (!tempFile) return -2;
-    }
+//    if (settings.src == SOURCE_STDIN)
+//    {
+//        print("reading data from stdin...\n");
+//        std::FILE* tempFile = readStdinToTmpFile();
+//        ((TempFileData*)settings.src_data)->setPtr(tempFile);
+//        printElapsedTime();
+//        if (!tempFile) return -2;
+//    }
 
 
     print("searching line offsets:  ");
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         in = &ir_data->tempFile.file_stream;
         storeInputRangeToFile(ir_data->tempFile.ptr(), ir_data->min, ir_data->max);
         in->reset();
-        result = readMetadata(*in, in->size());
+        result = readMetadata(*in, 0);
         break;
     }
     case SOURCE_FILE:
@@ -153,11 +153,17 @@ int main(int argc, char *argv[])
         break;
     }
     case SOURCE_STDIN:
-    {
+    {        
         TempFileData* tfd = (TempFileData*)settings.src_data;
+        std::FILE* tempFile = openTmpFile();
+        if (!tempFile) return -2;
+        tfd->setPtr( tempFile );
         in = &tfd->file_stream;
-        in->reset();
-        result = readMetadata(*in, in->size());
+
+        io_buf s_in;
+        s_in.file = fileno(stdin);
+        result = readMetadata(s_in, 0);
+        s_in.close_files();
         break;
     }
     default: in = NULL; break;
