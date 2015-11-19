@@ -23,9 +23,14 @@ using namespace std;
 #endif
 
 #ifdef _WIN32
-#define ssize_t size_t
 #include <io.h>
 #include <sys/stat.h>
+#include <share.h>
+
+#ifndef __ssize_t_defined
+typedef size_t ssize_t;
+# define __ssize_t_defined
+#endif
 #endif
 
 class io_buf {
@@ -103,13 +108,15 @@ class io_buf {
     return ret;
   }
 
-  virtual long seek(size_t pos){
+  virtual long seek(long pos){
       long res;
 #ifdef _WIN32
     res = _lseek(file, pos, SEEK_SET);
 #else
     res = lseek(file, pos, SEEK_SET);
 #endif
+    endloaded = space.begin;
+    space.end = space.begin;
     if (res == 1L && (errno == EBADF || errno == EINVAL)) return -1;
     else return res;
   }
@@ -117,8 +124,6 @@ class io_buf {
 
   virtual void reset(){
     seek (0);
-    endloaded = space.begin;
-    space.end = space.begin;
   }
 
   io_buf() {
@@ -130,15 +135,13 @@ class io_buf {
     space.delete_v();
   }
 
-  static bool is_socket(int f);
-
   void set(char *p){space.end = p;}
 
   virtual ssize_t read_file(void* buf, size_t nbytes){
-    return read_file_or_socket(file, buf, nbytes);
+    return read_file(file, buf, nbytes);
   }
 
-  static ssize_t read_file_or_socket(int f, void* buf, size_t nbytes);
+  static ssize_t read_file(int f, void* buf, size_t nbytes);
 
   long size()
   {
@@ -165,30 +168,24 @@ class io_buf {
   }
 
   virtual ssize_t write_file(const void* buf, size_t nbytes) {
-    return write_file_or_socket(file, buf, nbytes);
+    return write_file(file, buf, nbytes);
   }
 
-  static ssize_t write_file_or_socket(int f, const void* buf, size_t nbytes);
+  static ssize_t write_file(int f, const void* buf, size_t nbytes);
 
   virtual void flush() {
       if (write_file(space.begin, space.size()) != (int) space.size())
       std::cerr << "error, failed to write example\n";
     space.end = space.begin; }
 
-  static void close_file_or_socket(int f);
+  void close_file(int f);
 
   virtual bool close_file(){
     if(file >= 0){
-      close_file_or_socket(file);
+      close_file(file);
       return true;
     }
     return false;
-  }
-
-  virtual bool compressed() { return false; }
-
-  void close_files(){
-    while(close_file());
   }
 
 };
