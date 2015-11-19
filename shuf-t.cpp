@@ -4,10 +4,11 @@ license as described in the file LICENSE.
  */
 #include "shuf-t.h"
 #include "utils.h"
+#include <algorithm> // std::sort
 
 bool remove_trailing_empty_line = true;
 
-size_t readMetadata(io_buf& src_file, const size_t source_length)
+int readMetadata(io_buf& src_file, const size_t source_length)
 {
     double progress_step = 0;
 
@@ -22,7 +23,7 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
 
     if (settings.end_line > 0)
     {
-        settings.metadata.reserve(settings.end_line - std::max(settings.start_line, (size_t) 1) + 1);
+        settings.metadata.reserve(settings.end_line - max(settings.start_line, (size_t) 1) + 1);
     }
 
 
@@ -32,7 +33,7 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
     size_t pos_start = 0;
     size_t lines_processed = 0;
 
-    size_t skip_first_lines = std::max(settings.header+1,settings.start_line);
+    size_t skip_first_lines = max(settings.header+1,settings.start_line);
 
     char *line = NULL;
     size_t len;
@@ -45,9 +46,9 @@ size_t readMetadata(io_buf& src_file, const size_t source_length)
 
         double current_progress;
         if (settings.end_line > 0)
-            current_progress = lines_processed; // progress by lines read
+            current_progress = (double)lines_processed; // progress by lines read
         else
-            current_progress = pos_start;       // progress by bytes read
+            current_progress = (double)pos_start;       // progress by bytes read
 
         while (current_progress - progress > 1e-5)
         {
@@ -124,7 +125,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
     {
         size_t len = readto(in_file, line, '\n');
         pos_input += len;
-        bin_write_fixed(out_file, line, len);
+        bin_write_fixed(out_file, line, (uint32_t)len);
     }
 
     // copy data
@@ -181,7 +182,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
             blocks_left -= blocks_marked;
         }
 
-        // sort blocks by offset toread them from input with one scan
+        // sort blocks by offset toread them from input with one scan        
         std::sort(blocks_to_read.begin(), blocks_to_read.end());
 
         // read blocks from input to buffer
@@ -191,7 +192,7 @@ int writeData(io_buf& in_file, io_buf& out_file)
             Block2Buf& block = blocks_to_read[i];
             if (pos_input != block.offset_read)
             {
-                if(in_file.seek(block.offset_read) == -1) //always forward
+                if(in_file.seek((long)block.offset_read) == -1) //always forward
                 {
                     result = -1;
                     print("internal error\n");
@@ -223,9 +224,9 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
         // progress by blocks
         if (settings.output_limit > 0)
-            blocks_processed = min(settings.output_limit,total_blocks) - blocks_left;
+            blocks_processed = (double) min(settings.output_limit,total_blocks) - blocks_left;
         else
-            blocks_processed = total_blocks - blocks_left;
+            blocks_processed = (double) total_blocks - blocks_left;
 
         while (blocks_processed - progress > 1e-5)
         {

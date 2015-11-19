@@ -5,7 +5,9 @@ license as described in the file LICENSE.
 #ifndef SETTINGS_H
 #define SETTINGS_H
 #include <vector>
-#include <unistd.h> // for isatty()
+#ifdef WIN32
+#include <io.h>
+#endif
 #include <cstdio>
 #include "io_buf.h"
 #include "metadata.h"
@@ -67,7 +69,6 @@ struct ShuftSettings
     size_t header;
     size_t output_limit;
     bool verbose;
-    bool terminal;
     ShuftSources src;
     void* src_data;
     SuftDestinations dst;
@@ -76,7 +77,6 @@ struct ShuftSettings
 
     ShuftSettings(): src_data(NULL), dst_data(NULL)
     {
-        terminal =  isatty(fileno(stdout));
     }
 
     ~ShuftSettings()

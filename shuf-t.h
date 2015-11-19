@@ -13,7 +13,7 @@ license as described in the file LICENSE.
 #include "metadata.h"
 #include "settings.h"
 
-size_t readMetadata(io_buf& src_file, const size_t source_length = 0);
+int readMetadata(io_buf& src_file, const size_t source_length = 0);
 int  writeData(io_buf& in_file, io_buf &out_file);
 void shuffleMetadata();
 

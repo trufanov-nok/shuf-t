@@ -6,37 +6,95 @@ license as described in the file LICENSE.
 #include "utils.h"
 #include <time.h>
 
+const char* SHUF_T_VERSION = "1.2.1";
 ShuftSettings settings;
 
 using namespace std;
 
 #define time_elapsed difftime( time(NULL), performance_timer )
 
-int processCommandLineArguments(po::variables_map& vm)
+int processCommandLineArguments(CSimpleOpt* opt)
 {
+    //set default parameters
+    settings.verbose = true;
+    settings.output_limit = 0;
+    settings.buffer_size = 1024*1024*1024;
+    settings.header = 0;
+    unsigned int seed = (unsigned int)time(NULL);
+    bool ir_src = false;
+    bool out_file = false;
     //get shuffle parameters
 
-    settings.verbose = !vm.count("quiet");
+    while (opt->Next()) {
+        if (opt->LastError() == SO_SUCCESS) {
+            switch (opt->OptionId())
+            {
+            case OPT_HELP:
+                showHelp();
+                return 1;
+            case OPT_VER:
+                std::cout << "Program version: " << SHUF_T_VERSION << std::endl;
+                return 1;
+            case OPT_QUIET:
+                settings.verbose = false;
+                break;
+            case OPT_BUF:
+                settings.buffer_size = (size_t)atof(opt->OptionArg())*1024*1024;
+                break;
+            case OPT_TOP:
+                settings.header = atoi(opt->OptionArg());
+                break;
+            case OPT_HEAD:
+                settings.output_limit = atoi(opt->OptionArg());
+                break;
+            case OPT_LINES:
+            {
+                string s(opt->OptionArg());
+                if(!getRangeArgument(s, settings.start_line, settings.end_line))
+                {
+                    fprintf(stderr, "invalid lines range ‘%s'", opt->OptionArg());
+                    return -1;
+                }
+                swapIfNeeded(settings.start_line, settings.end_line);
+            }
+                break;
+            case OPT_SEED:
+                seed = atoi(opt->OptionArg());
+                break;
+            case OPT_RANGE:
+            {
+                settings.src = SOURCE_INPUT_RANGE;
+                IRData* ir = new IRData();
+                settings.src_data = ir;
+                string s(opt->OptionArg());
+                if (!getRangeArgument(s, ir->min, ir->max))
+                {
+                    fprintf(stderr, "invalid input range ‘%s'", opt->OptionArg());
+                    return -1;
+                }
 
-    if(vm.count("buffer"))  settings.buffer_size = vm["buffer"].as<float>()*1024*1024;
-    if(vm.count("top"))     settings.header  = vm["top"].as<int>();
-    if(vm.count("head-count"))  settings.output_limit  = vm["head-count"].as<int>();
-    if (vm.count("lines"))
-    {
-        if(!getRangeArgument(vm["lines"].as<string>(), settings.start_line, settings.end_line))
-        {
-            fprintf(stderr, "invalid lines range ‘%s'", vm["lines"].as<string>().data());
-            return -1;
+                swapIfNeeded(ir->min, ir->max);
+                ir_src = true;
+            }
+                break;
+            case OPT_OUT:
+            {
+                settings.dst = DEST_FILE;
+                FileData* fd = new FileData();
+                settings.dst_data = fd;
+                fd->setFilename( string(opt->OptionArg()), io_buf::WRITE);
+                out_file = true;
+            }
+                break;
+            default:
+                printf("Invalid argument: %s\n", opt->OptionText());
+                return 1;
+            }
+        } else {
+            printf("Invalid argument: %s\n", opt->OptionText());
+            return 1;
         }
-        swapIfNeeded(settings.start_line, settings.end_line);
     }
-
-    size_t seed  = 0;
-    if(vm.count("seed"))
-    {
-        seed  = vm["seed"].as<int>();
-    } else
-        seed = time(NULL);
 
     srand(seed);
     print("random seed: ");
@@ -45,47 +103,25 @@ int processCommandLineArguments(po::variables_map& vm)
     print(ss.str());
 
 
-    bool ir_src = false;
-    if (vm.count("input_range"))
-    {
-        settings.src = SOURCE_INPUT_RANGE;
-        IRData* ir = new IRData();
-        settings.src_data = ir;
-
-        if (!getRangeArgument(vm["input_range"].as<string>(), ir->min, ir->max))
-        {
-            fprintf(stderr, "invalid input range ‘%s'", vm["input_range"].as<string>().data());
-            return -1;
-        }
-
-        swapIfNeeded(ir->min, ir->max);
-        ir_src = true;
-    }
-
-
-    if (vm.count("input-file"))
+    if (opt->FileCount() > 0)
     {
         if (!ir_src)
         {
             settings.src = SOURCE_FILE;
             FileData* fd = new FileData();
             settings.src_data = fd;
-            fd->setFilename( vm["input-file"].as< vector<string> >()[0] );
+            fd->setFilename( string(opt->File(0)) );
         } else fprintf(stderr, "WARNING: Both input file and --input_range parameter are specified. Input file is ignored.");
-    } else if (!ir_src)
+    } else
+    if (!ir_src )
     {
         //stdin
         settings.src = SOURCE_STDIN;
         settings.src_data = new TempFileData();
     }
 
-    if(vm.count("output"))
+    if (!out_file)
     {
-        settings.dst = DEST_FILE;
-        FileData* fd = new FileData();
-        settings.dst_data = fd;
-        fd->setFilename( vm["output"].as<string>(), io_buf::WRITE);
-    } else {
         settings.dst = DEST_STDOUT;
         io_buf* buf =  new io_buf();
         settings.dst_data = buf;
@@ -98,11 +134,13 @@ int processCommandLineArguments(po::variables_map& vm)
 
 int main(int argc, char *argv[])
 {
-    po::variables_map vm;
+    CSimpleOpt* opt_parser = initCommandLineOptions(argc, argv);
+    if (!opt_parser) return 0;
 
-    if (!initCommandLineOptions(vm, argc, argv)) return 0;
 
-    int result = processCommandLineArguments(vm);
+    int result = processCommandLineArguments(opt_parser);
+    delete opt_parser;
+
     if (result != 0)
         return result;
 
@@ -186,7 +224,7 @@ int main(int argc, char *argv[])
     writeData(*in, *out);
 
     if (settings.dst == DEST_FILE)
-      ((FileData*)settings.dst_data)->file_stream.close_file();
+        ((FileData*)settings.dst_data)->file_stream.close_file();
 
     if (settings.src == SOURCE_FILE)
         ((FileData*)settings.src_data)->file_stream.close_file();

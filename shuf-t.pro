@@ -4,17 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       -= core
-QT       -= gui
-
+QT       -= core gui
+CONFIG   -= app_bundle
 TARGET = shuf-t
 
-CONFIG   -= console
-CONFIG   -= app_bundle
-
 TEMPLATE = app
-
-LIBS = -lboost_program_options
 
 SOURCES += utils.cpp \
     main.cpp \
@@ -27,6 +21,10 @@ HEADERS += \
     utils.h \
     io_buf.h \
     v_array.h \
-    settings.h
+    settings.h \
+    SimpleOpt.h
 
 QMAKE_LFLAGS_RPATH=
+#win32-g++{
+ #QMAKE_LFLAGS += -static # to remove libgcc_s_dw2-1.dll dependance if mingw is used
+#}
