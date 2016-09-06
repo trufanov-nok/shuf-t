@@ -281,6 +281,8 @@ std::FILE* readStdinToTmpFile()
     {
         for (std::string line; std::getline(std::cin, line);)
         {
+            if (line.empty() || *(line.data()+line.length()-1) != '\n')
+                line.push_back('\n');
             std::fputs(line.data(), f);
         }
         std::rewind(f);
