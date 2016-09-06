@@ -6,7 +6,7 @@ license as described in the file LICENSE.
 #include "utils.h"
 #include <time.h>
 
-const char* SHUF_T_VERSION = "1.2.1";
+const char* SHUF_T_VERSION = "1.2.2";
 ShuftSettings settings;
 
 using namespace std;
