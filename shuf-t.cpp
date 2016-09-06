@@ -37,10 +37,14 @@ int readMetadata(io_buf& src_file, const size_t source_length)
 
     char *line = NULL;
     size_t len;
+    bool last_line_teminator_found = false;
+
     while ((len = readto(src_file, line, '\n')))
     {
         if (skip_first_lines <= ++lines_processed)
             settings.metadata.push_back( Block(pos_start, len) );
+
+        last_line_teminator_found = *(line+len-1) == '\n';
 
         pos_start += len;
 
@@ -64,9 +68,19 @@ int readMetadata(io_buf& src_file, const size_t source_length)
 
     print("\n");
 
-    if (remove_trailing_empty_line)
-        if (settings.metadata.size() > 0 && (settings.metadata.end()-1)->length == 0)
-            settings.metadata.pop_back();
+
+    if (settings.metadata.size() > 0)
+    {
+        Block& last_block = *(settings.metadata.end()-1);
+        if (last_block.length == 0)
+        {
+            if (remove_trailing_empty_line)
+                settings.metadata.pop_back();
+            else
+                last_block.length++;
+        } else
+            if (!last_line_teminator_found) last_block.length++; //reserve a space for missing last line terminator
+    }
 
 
     return 0;
@@ -206,6 +220,10 @@ int writeData(io_buf& in_file, io_buf& out_file)
             pos_input += len;
 
             memcpy( int_buffer+block.offset_write, line, len);
+
+            if (blocks_left == 0 && i == blocks_to_read.size()-1) //last line processing
+                if (len == 0 || *(line+len-1) != '\n') //last line has no trailing line terminator (space already reserved)
+                    *(int_buffer+block.offset_write+len) = '\n';
         }
 
 
