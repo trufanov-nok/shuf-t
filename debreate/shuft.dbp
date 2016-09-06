@@ -1,7 +1,7 @@
 [DEBREATE-0.7.10]
 <<CTRL>>
 Package: shuf-t
-Version: 1.2.1
+Version: 1.2.2
 Section: utils
 Maintainer: Alexander Trufanov <trufanovan@gmail.com>
 Homepage: https://github.com/trufanov-nok/shuf-t
@@ -9,7 +9,7 @@ Priority: optional
 Architecture: amd64
 Depends: libc6
 Description: Shuffles lines of the files bigger than available RAM
- This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:
+ This application shuffles the input file lines skipping (optionally) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:
  1. The file is scanned and offsets of all lines are stored in RAM.
  2. Offsets are shuffled (Fisher–Yates algorithm).
  3. Iteratively shuf-t takes the offsets of first N shuffled lines and sort their offsets ascending. Lines are read from input file (only seeking forward is used as offsets are sorted) and written to memory allocated buffer in shuffled order. Then buffer is written to output file. Buffer size can be adjusted by user based on available amount of free RAM. Value N is chosen based on lines length and buffer size at the beginning of each iteration.
@@ -17,7 +17,7 @@ Description: Shuffles lines of the files bigger than available RAM
 <</CTRL>>
 <<FILES>>
 1
-/home/truf/dev/build-shuf-t-Desktop_Qt_5_4_2_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
+/home/truf/dev/build-shuf-t-Desktop_Qt_5_5_1_GCC_64bit-Release/shuf-t* -> shuf-t -> /usr/bin
 <</FILES>>
 <<SCRIPTS>>
 <<PREINST>>
@@ -35,6 +35,12 @@ Description: Shuffles lines of the files bigger than available RAM
 <</SCRIPTS>>
 <<CHANGELOG>>
 <<DEST>>DEFAULT<</DEST>>
+shuf-t (1.2.2) ; urgency=low
+
+  * bugfix
+
+ -- Alexander Trufanov <trufanovan@gmail.com>  Tue, 06 Sep 2016 21:25:39 +0300
+
  (1.2.1) ; urgency=low
 
   * libboost dependencies were removed. SimpleOpt is used for command line parsing.
