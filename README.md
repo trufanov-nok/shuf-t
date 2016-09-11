@@ -1,4 +1,4 @@
-shuf-t 1.2.1
+shuf-t 1.2.2
 ======
 This application shuffles the input file lines skipping (optionaly) the header. It's optimized for files bigger than available RAM. Shuffling performed in 3 steps:  
 1. The file is scanned and offsets of all lines are stored in RAM.  
@@ -29,6 +29,7 @@ Options:
 
 
 Changelog:  
+1.2.2 - minor bugfixes
 1.2.1 - libboost dependencies were removed. SimpleOpt is used for command line parsing.  Some bugs were fixed. Code adjusted for better windows compatibility.  
 1.2   - Qt dependencies were removed (Qt Creator and qmake are still used for building the project). Now app depends only on boost_program_options library.  
 1.1   - critical bug fixed in IO stream  
