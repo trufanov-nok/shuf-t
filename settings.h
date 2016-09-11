@@ -49,7 +49,11 @@ public:
     void setPtr(std::FILE* f)
     {
        _ptr = f;
-       if (f) file_stream.file = fileno(_ptr);
+#ifdef _WIN32
+        if (f) file_stream.file = _fileno(_ptr);
+#else
+        if (f) file_stream.file = fileno(_ptr);
+#endif
     }
 
 };

@@ -6,7 +6,7 @@ license as described in the file LICENSE.
 #include "utils.h"
 #include <time.h>
 
-const char* SHUF_T_VERSION = "1.2.1";
+const char* SHUF_T_VERSION = "1.2.2";
 ShuftSettings settings;
 
 using namespace std;
@@ -228,9 +228,6 @@ int main(int argc, char *argv[])
 
     if (settings.src == SOURCE_FILE)
         ((FileData*)settings.src_data)->file_stream.close_file();
-    else if (settings.src == SOURCE_STDIN)
-        ((TempFileData*)settings.src_data)->file_stream.close_file();
-    else  ((IRData*)settings.src_data)->tempFile.file_stream.close_file();
 
     printTime(time_elapsed);
 

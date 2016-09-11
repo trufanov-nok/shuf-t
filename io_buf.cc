@@ -79,7 +79,7 @@ size_t readto(io_buf &i, char* &pointer, char terminal)
 	{
 	  size_t n = pointer - i.space.end;
 	  i.space.end = pointer;
-	  pointer -= n;
+      pointer -= n;
 	  return n;
 	}
     }
