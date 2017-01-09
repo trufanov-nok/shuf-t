@@ -1,7 +1,7 @@
 [DEBREATE-0.7.10]
 <<CTRL>>
 Package: shuf-t
-Version: 1.2.2
+Version: 1.2.3
 Section: utils
 Maintainer: Alexander Trufanov <trufanovan@gmail.com>
 Homepage: https://github.com/trufanov-nok/shuf-t
@@ -35,6 +35,12 @@ Description: Shuffles lines of the files bigger than available RAM
 <</SCRIPTS>>
 <<CHANGELOG>>
 <<DEST>>DEFAULT<</DEST>>
+ shuf-t (1.2.3) ; urgency=low
+
+  * adding `--tempfile` option to specify file used as temporary data storage.
+
+ --  <>  Mon, 09 Jan 2017 14:35:44 +0300
+
 shuf-t (1.2.2) ; urgency=low
 
   * bugfix

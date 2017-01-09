@@ -41,10 +41,11 @@ CSimpleOpt::SOption cmdOptions[] = {
     { OPT_LINES,  _T("--lines"),     SO_REQ_SEP },
     { OPT_SEED,  _T("-s"),     SO_REQ_SEP },
     { OPT_SEED,  _T("--seed"),     SO_REQ_SEP },
+    { OPT_TEMP_FILE, _T("--tempfile"),     SO_REQ_SEP },
     SO_END_OF_OPTIONS                       // END
 };
 
-CSimpleOpt* initCommandLineOptions(int argc, char *argv[])
+CSimpleOpt* initCommandLineArguments(int argc, char *argv[])
 {
     CSimpleOpt* opt = new CSimpleOpt();
     if (opt->Init(argc, argv, cmdOptions))
@@ -83,7 +84,8 @@ Command line parameters:\n\
                                file before -l is applied.\n\
   -l [ --lines ] arg           Shuffle and output only lines in range FROM-TO.\n\
   -s [ --seed ]                Initialize rand function with given seed. \n\
-                               Overwise system time is used.\n";
+                               Overwise system time is used.\n\
+  --tempfile arg               Use file arg as temporary data storage.\n";
  std::printf("%s", help);
 }
 

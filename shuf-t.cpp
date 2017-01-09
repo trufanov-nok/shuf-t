@@ -268,7 +268,12 @@ int writeData(io_buf& in_file, io_buf& out_file)
 
 std::FILE* openTmpFile()
 {
-    std::FILE* f = std::tmpfile();
+    std::FILE* f;
+    if (settings.temp_filename.empty())
+        f = std::tmpfile();
+    else
+        f = std::fopen(settings.temp_filename.c_str(), "wb+");
+
     if (f == NULL)
         fprintf(stderr, "ERROR: Can't create a temporary file.");
     return f;

@@ -92,10 +92,11 @@ enum { OPT_VER,
        OPT_QUIET,
        OPT_TOP,
        OPT_LINES,
-       OPT_SEED
+       OPT_SEED,
+       OPT_TEMP_FILE
      };
 
-CSimpleOpt* initCommandLineOptions(int argc, char *argv[]);
+CSimpleOpt* initCommandLineArguments(int argc, char *argv[]);
 void showHelp();
 
 #endif // UTILS_H

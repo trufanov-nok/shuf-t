@@ -78,6 +78,7 @@ struct ShuftSettings
     SuftDestinations dst;
     void* dst_data;
     vector< Block > metadata;
+    string temp_filename;
 
     ShuftSettings(): src_data(NULL), dst_data(NULL)
     {

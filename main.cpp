@@ -6,7 +6,7 @@ license as described in the file LICENSE.
 #include "utils.h"
 #include <time.h>
 
-const char* SHUF_T_VERSION = "1.2.2";
+const char* SHUF_T_VERSION = "1.2.3";
 ShuftSettings settings;
 
 using namespace std;
@@ -86,6 +86,11 @@ int processCommandLineArguments(CSimpleOpt* opt)
                 out_file = true;
             }
                 break;
+            case OPT_TEMP_FILE:
+            {
+                settings.temp_filename = string(opt->OptionArg());
+            }
+                break;
             default:
                 printf("Invalid argument: %s\n", opt->OptionText());
                 return 1;
@@ -134,7 +139,7 @@ int processCommandLineArguments(CSimpleOpt* opt)
 
 int main(int argc, char *argv[])
 {
-    CSimpleOpt* opt_parser = initCommandLineOptions(argc, argv);
+    CSimpleOpt* opt_parser = initCommandLineArguments(argc, argv);
     if (!opt_parser) return 0;
 
 
@@ -228,6 +233,20 @@ int main(int argc, char *argv[])
 
     if (settings.src == SOURCE_FILE)
         ((FileData*)settings.src_data)->file_stream.close_file();
+    else
+        if (!settings.temp_filename.empty()) // custom temp filename used
+        {
+            if (settings.src == SOURCE_STDIN)
+            {
+                ((TempFileData*)settings.src_data)->file_stream.close_file();
+            } else
+                if (settings.src == SOURCE_INPUT_RANGE)
+                    ((IRData*)settings.src_data)->tempFile.file_stream.close_file();
+
+            if (std::remove(settings.temp_filename.c_str()) != 0)
+              fprintf(stderr, "Error while removing temp file %s", settings.temp_filename.c_str());
+        }
+
 
     printTime(time_elapsed);
 
